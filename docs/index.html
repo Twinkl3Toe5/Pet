@@ -85,39 +85,48 @@ function step(){
   for(let i=0;i<candidates.length;i++){roll-=weights[i];if(roll<=0)return candidates[i]}
   return candidates[candidates.length-1];
  };
- // Commit to a destination until the task is finished; only urgent needs interrupt.
- const busy=!!s.activityTarget||!!s.discoveryTarget;
- const urgentHunger=s.hunger>=85,urgentEnergy=s.energy<=15;
- if((!busy&&s.hunger>=65)||urgentHunger){
-  const t=bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
-  s.activityTarget=null;s.discoveryTarget=null;s.activityProgress=0;
-  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate some berries. Feeling much better!';kind='food'}
-  else{move(t,4.32);msg='Feeling hungry. Heading for berries.'}
- }else if((!busy&&s.energy<35)||urgentEnergy){
-  s.activityTarget=null;s.discoveryTarget=null;s.activityProgress=0;s.energy=Math.min(100,s.energy+.42);
-  s.comfort=Math.min(100,s.comfort+.05);
-  msg='Taking a proper rest and recharging.';kind='rest';
- }else if(!busy&&s.comfort<35){
+ // Persist the current intention, including food and comfort trips.
+ // A task is only released on arrival/completion, not on the next tick.
+ if(!s.task || typeof s.task!=='object')s.task=null;
+ if(s.task && !['eat','rest','comfort','discover','activity'].includes(s.task.type))s.task=null;
+ if(!s.task){
+  if(s.hunger>=65)s.task={type:'eat',target:bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
+  else if(s.energy<35)s.task={type:'rest'};
+  else if(s.comfort<35)s.task={type:'comfort',target:'tree'};
+  else if(s.discoveryTarget||unknown.length)s.task={type:'discover',target:s.discoveryTarget||unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
+  else{s.task={type:'activity',target:s.activityTarget||choice().id};s.activityTarget=s.task.target;s.activityProgress=0}
+  const destinations={eat:'the berry bush',rest:'rest',comfort:'the old tree',discover:objects.find(o=>o.id===s.task.target)?.label||'something new',activity:s.task.target==='reading'?'the research laptop':s.task.target};
+  msg='My plan: '+(s.task.type==='rest'?'take a rest':'go to '+destinations[s.task.type]+'.');kind='plan';
+ }
+ // Emergency interruption only; never switch between ordinary needs mid-trip.
+ if(s.task.type!=='eat'&&s.hunger>=95){s.task={type:'eat',target:bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need food first.';kind='plan'}
+ else if(s.task.type!=='rest'&&s.energy<=5){s.task={type:'rest'};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need to rest first.';kind='plan'}
+ if(s.task.type==='eat'){
+  const t=objects.find(o=>o.id===s.task.target)||bushes[0];
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Reached the berry bush and ate.';kind='food';s.task=null}
+  else{move(t,4.32);if(kind!=='plan')msg='Walking to the berry bush.'}
+ }else if(s.task.type==='rest'){
+  s.energy=Math.min(100,s.energy+.42);s.comfort=Math.min(100,s.comfort+.05);
+  if(s.energy>=85){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
+  else if(kind!=='plan')msg='Resting and recharging.';
+ }else if(s.task.type==='comfort'){
   const t=objects.find(o=>o.id==='tree');
-  s.activityTarget=null;
-  if(dist(s,t)>35){move(t,3.52);msg='Looking for a peaceful spot beneath the tree.'}
+  if(dist(s,t)>35){move(t,3.52);if(kind!=='plan')msg='Walking to the old tree.'}
   else{s.comfort=Math.min(100,s.comfort+.5);s.energy=Math.min(100,s.energy+.03);
-   msg='Enjoying the shade. This place feels safe and familiar.';kind='comfort'}
- }else if(s.discoveryTarget||(!s.activityTarget&&unknown.length)){
-  if(!s.discoveryTarget)s.discoveryTarget=unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id;
+   if(s.comfort>=80){msg='Finished relaxing under the tree.';kind='activity';s.task=null}
+   else if(kind!=='plan')msg='Relaxing under the tree.'}
+ }else if(s.task.type==='discover'){
+  s.discoveryTarget=s.task.target;
+
   const t=objects.find(o=>o.id===s.discoveryTarget);s.activityTarget=null;
   if(dist(s,t)<22){
-   s.discoveries.push(t.id);s.discoveryTarget=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
+   s.discoveries.push(t.id);s.discoveryTarget=null;s.task=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
    const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
   }else{move(t,3.68);msg='Something unfamiliar caught my attention.'}
- }else{
-  // Once all objects are discovered, PET pursues varied activities rather than looping dialogue.
-  if(!s.activityTarget){
-   const next=choice();s.activityTarget=next.id;s.activityProgress=0;
-   msg='I have decided to go '+next.name+'.';kind='plan';
-  }
+ }else if(s.task.type==='activity'){
+  s.activityTarget=s.task.target;
   const activities={
    lake:{object:'pond',distance:60,comfort:.65,curiosity:1.3,thoughts:['The water is making new patterns today.','I wonder what is beneath the surface.','Watching the reflections makes me feel calm.']},
    shade:{object:'tree',distance:32,comfort:2.4,energy:.3,thoughts:['This is a lovely place to unwind.','I think this tree might be my favourite resting spot.','The shade feels wonderful.']},
@@ -152,7 +161,7 @@ function step(){
     // Each completed activity gradually shapes an individual preference.
     s.personality[s.activityTarget]=Math.min(20,(s.personality[s.activityTarget]||0)+.45);
     s.activities[s.activityTarget]=s.tick;
-    s.activityTarget=null;s.activityProgress=0;
+    s.activityTarget=null;s.activityProgress=0;s.task=null;
    }else{msg='Spending a little time here.'}
   }
  }
