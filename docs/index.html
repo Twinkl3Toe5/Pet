@@ -289,7 +289,7 @@ function draw(){
  for(let i=0;i<36;i++){const x=130+(i*83)%645,y=151+(i*37)%97;px(x+Math.sin(s.tick*.018+i)*4,y,13+(i%3)*6,2,i%4===0?'#d0e7c9':'#95cbc5')}
  for(const [x,y] of [[195,232],[645,231],[721,211]]){leaf(x,y,13,'#438e6b');px(x+3,y-3,5,4,'#d8b7bc')}
  // Soft path edged with soil and pale sandy highlights.
- ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.lineCap='butt';ctx.lineJoin='bevel';
  const path=()=>{ctx.beginPath();ctx.moveTo(413,615);ctx.bezierCurveTo(426,542,479,478,488,436);ctx.bezierCurveTo(504,391,513,367,496,344)};
  ctx.strokeStyle='#8b795a';ctx.lineWidth=52;path();ctx.stroke();
  ctx.strokeStyle='#d6b786';ctx.lineWidth=45;path();ctx.stroke();
@@ -352,51 +352,37 @@ function draw(){
  ctx.fillText(timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night'),18,27);ctx.restore();
  // A gentle vignette frames the scene like an illustrated storybook.
  const glow=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,610);glow.addColorStop(0,'rgba(255,255,255,0)');glow.addColorStop(1,'rgba(28,75,58,.14)');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
- // PET: a friendly, original anthropomorphic handheld game console.
- // Bob and swinging limbs give a walking animation without changing AI movement.
- ctx.save();ctx.translate(s.x,s.y);
- const walking=s.tick%8<6, bob=walking?Math.sin(s.tick*1.5)*2:0;
+ // Hand-authored pixel sprite: no ellipses, arcs, roundRect or stroked vector limbs.
+ ctx.save();ctx.translate(Math.round(s.x/4)*4,Math.round(s.y/4)*4);
+ const walking=s.task&&s.task.type!=='rest',frame=walking?Math.floor(s.tick/3)%2:0;
  const mood=s.hunger>75?'hungry':s.energy<30?'sleepy':s.curiosity>65?'curious':'happy';
- ctx.translate(0,bob);
- oval(0,26,24,5,'rgba(33,66,67,.22)',null);
- ctx.strokeStyle='#24384c';ctx.lineWidth=4;ctx.lineCap='round';
- // Legs and tiny shoes
- const swing=walking?Math.sin(s.tick*1.5)*5:0;
- ctx.beginPath();ctx.moveTo(-10,16);ctx.lineTo(-13+swing,28);ctx.moveTo(10,16);ctx.lineTo(13-swing,28);ctx.stroke();
- oval(-13+swing,29,6,3,'#376f80','#24384c',2);
- oval(13-swing,29,6,3,'#376f80','#24384c',2);
- // Arms
- ctx.strokeStyle='#24a8a2';ctx.lineWidth=6;ctx.beginPath();
- ctx.moveTo(-19,-3);ctx.lineTo(-27,-1-swing*.45);ctx.lineTo(-30,6-swing*.45);
- ctx.moveTo(19,-3);ctx.lineTo(27,-1+swing*.45);ctx.lineTo(30,6+swing*.45);ctx.stroke();
- oval(-30,6-swing*.45,3,3,'#25b9b1','#24384c',1.5);
- oval(30,6+swing*.45,3,3,'#25b9b1','#24384c',1.5);
- // Rounded turquoise casing, bezel and screen
- ctx.fillStyle='#16a9a2';ctx.strokeStyle='#24384c';ctx.lineWidth=3;
- ctx.beginPath();ctx.roundRect(-21,-29,42,47,6);ctx.fill();ctx.stroke();
- ctx.fillStyle='#0b817e';ctx.fillRect(-18,-25,4,36);
- ctx.fillStyle='rgba(187,255,241,.35)';ctx.fillRect(12,-24,3,34);
- ctx.fillStyle='#46cfc3';ctx.fillRect(-16,-25,25,2);
- ctx.fillStyle='#c9f4dd';ctx.beginPath();ctx.roundRect(-14,-23,30,24,4);ctx.fill();ctx.stroke();
- ctx.fillStyle='rgba(255,255,255,.24)';ctx.fillRect(-12,-21,9,3);
- ctx.fillStyle='#263d46';
- if(mood==='sleepy'){
-  ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(-8,-11);ctx.lineTo(-3,-11);ctx.moveTo(6,-11);ctx.lineTo(11,-11);ctx.stroke();
- }else{
-  oval(-6,-12,1.8,2.2,'#263d46',null);oval(8,-12,1.8,2.2,'#263d46',null);
+ const p=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+ // Shadow and animated boots.
+ p(-20,27,40,4,'rgba(36,67,61,.25)');p(-12,31,24,3,'rgba(36,67,61,.14)');
+ p(-13,15,7,13+(frame?3:0),'#294d61');p(7,15,7,13+(frame?0:3),'#294d61');
+ p(-17,27+(frame?3:0),13,5,'#3e6573');p(5,27+(frame?0:3),13,5,'#3e6573');
+ p(-17,27+(frame?3:0),13,2,'#81a7a6');p(5,27+(frame?0:3),13,2,'#81a7a6');
+ // Tiny articulated arms.
+ p(-28,-7+(frame?3:0),9,7,'#2d4b58');p(-31,-3+(frame?3:0),7,13,'#249c97');
+ p(20,-7+(frame?0:3),9,7,'#2d4b58');p(25,-3+(frame?0:3),7,13,'#249c97');
+ p(-31,7+(frame?3:0),7,5,'#72d5bf');p(25,7+(frame?0:3),7,5,'#72d5bf');
+ // Outlined stepped casing with contrasting side and top bevels.
+ p(-20,-30,40,49,'#243e52');p(-23,-26,46,41,'#243e52');
+ p(-19,-27,38,43,'#168f8f');p(-21,-23,42,35,'#21b0a4');
+ p(-16,-26,29,4,'#7cddc0');p(-18,-20,4,30,'#58cbb6');p(15,-22,4,33,'#116c78');
+ p(-14,-23,29,26,'#2c4e5b');p(-11,-20,23,20,'#c7ebd5');
+ p(-10,-19,20,3,'#eff7d8');p(-10,-16,3,12,'#e3f4df');
+ // Pixel expressions.
+ if(mood==='sleepy'){p(-7,-11,5,2,'#304956');p(4,-11,5,2,'#304956');p(-2,-6,7,2,'#304956')}
+ else{p(-6,-13,3,5,'#304956');p(6,-13,3,5,'#304956');
+  if(mood==='hungry'){p(0,-6,5,5,'#304956');p(1,-5,3,3,'#e3a8a1')}
+  else{p(-2,-6,10,2,'#304956');p(0,-4,6,2,'#304956')}
  }
- ctx.strokeStyle='#263d46';ctx.lineWidth=1.8;ctx.beginPath();
- if(mood==='hungry'){ctx.arc(1,-5,2.7,0,Math.PI*2)}
- else if(mood==='sleepy'){ctx.moveTo(-2,-5);ctx.lineTo(5,-5)}
- else{ctx.arc(1,-8,6,.2,Math.PI-.2)}
- ctx.stroke();
- // Speaker slot and distinctive handheld controls
- ctx.fillStyle='#263d46';ctx.fillRect(-12,4,24,2.5);
- ctx.fillStyle='#f4c64b';ctx.fillRect(-11,8,5,12);ctx.fillRect(-14,11,11,5);
- oval(11,11,3.8,3.8,'#e85b88','#24384c',1.5);
- oval(10,10,1.2,1.2,'#ffdbe9');
- oval(15,4,2.5,2.5,'#84d971','#24384c',1);
- ctx.fillStyle='#4853a8';ctx.fillRect(-1,14,6,2);
+ p(-12,-7,3,3,'#f1b5aa');p(10,-7,3,3,'#f1b5aa');
+ // D-pad, face buttons, speaker and power indicator.
+ p(-11,5,22,2,'#245363');p(-12,10,5,13,'#e5b84d');p(-16,14,13,5,'#e5b84d');
+ p(-10,12,2,8,'#f7db84');p(8,13,7,7,'#2d4b5a');p(9,13,5,5,'#e87892');
+ p(13,6,6,6,'#2d4b5a');p(14,6,4,4,'#8acb78');p(-1,17,6,2,'#2d4b5a');
  ctx.restore();
 }
 
