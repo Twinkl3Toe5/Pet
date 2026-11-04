@@ -357,10 +357,17 @@ function draw(){
   if(o.kind==='tree')tree(o.x,o.y,.75);
   if(o.kind==='mushroom'){px(o.x-4,o.y-3,9,15,'#eee2c6');leaf(o.x,o.y-7,19,'#ba666a');px(o.x-8,o.y-14,5,4,'#f8dfc4');px(o.x+7,o.y-11,5,4,'#f8dfc4')}
   if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
-  ctx.save();ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-  const ly=o.y+(o.kind==='tree'?43:35),tw=ctx.measureText(o.label).width+16;
-  ctx.fillStyle='rgba(35,54,45,.9)';ctx.fillRect(Math.round((o.x-tw/2)/2)*2,ly-10,Math.ceil(tw/2)*2,20);
-  ctx.fillStyle='#fff5dc';ctx.fillText(o.label,o.x,ly);ctx.restore();
+  ctx.save();ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  const ly=Math.round((o.y+(o.kind==='tree'?43:35))/2)*2;
+  const tw=Math.ceil((ctx.measureText(o.label).width+20)/4)*4;
+  const lx=Math.round((o.x-tw/2)/2)*2;
+  // Solid pixel-art nameplate: shadow, dark border, opaque fill and light upper rim.
+  ctx.fillStyle='#243c37';ctx.fillRect(lx+2,ly-10,tw,24);
+  ctx.fillStyle='#142e32';ctx.fillRect(lx,ly-14,tw,24);
+  ctx.fillStyle='#35564b';ctx.fillRect(lx+2,ly-12,tw-4,20);
+  ctx.fillStyle='#71907a';ctx.fillRect(lx+4,ly-12,tw-8,2);
+  ctx.fillStyle='#fff7d9';ctx.fillText(o.label,lx+tw/2,ly-2);
+  ctx.restore();
  }
  // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
  const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
@@ -375,8 +382,13 @@ function draw(){
   ctx.fillStyle='rgba(255,255,225,'+Math.min(.85,darkness*1.4)+')';
   for(let i=0;i<36;i++){const x=(i*137+39)%W,y=8+(i*47)%72;ctx.fillRect(x,y,2,2)}
  }
- ctx.save();ctx.font='bold 15px system-ui';ctx.textAlign='left';ctx.fillStyle='#fff9e8';
- ctx.fillText(timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night'),18,27);ctx.restore();
+ ctx.save();ctx.font='bold 16px system-ui';ctx.textAlign='left';ctx.textBaseline='middle';
+ const clockText=timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night');
+ const clockW=Math.ceil((ctx.measureText(clockText).width+24)/4)*4;
+ ctx.fillStyle='#1b3335';ctx.fillRect(14,12,clockW,34);
+ ctx.fillStyle='#34584c';ctx.fillRect(16,14,clockW-4,30);
+ ctx.fillStyle='#89a98b';ctx.fillRect(18,14,clockW-8,2);
+ ctx.fillStyle='#fff8de';ctx.fillText(clockText,26,29);ctx.restore();
  // A gentle vignette frames the scene like an illustrated storybook.
  const glow=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,610);glow.addColorStop(0,'rgba(255,255,255,0)');glow.addColorStop(1,'rgba(28,75,58,.14)');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
  // Hand-authored pixel sprite: no ellipses, arcs, roundRect or stroked vector limbs.
