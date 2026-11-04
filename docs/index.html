@@ -6,7 +6,7 @@
 </style></head><body>
 <header><div><h1>P E T</h1><small>A small life in a colourful cartoon world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
-<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A colourful world to explore</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A peaceful lakeside clearing</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
 <section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
@@ -129,52 +129,39 @@ function berryBush(x,y){
 }
 function draw(){
  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
- // Sky, distant mountains, and rolling hills.
- ctx.fillStyle='#75cafa';ctx.fillRect(0,0,W,H);
- cloud(180,64,1);cloud(660,47,1.15);cloud(810,95,.7);
- shape([[270,235],[420,25],[505,160],[572,72],[700,240]],'#888bc7');
- shape([[345,129],[420,25],[479,122],[447,105],[420,78],[398,113]],'#f1f8ff');
- shape([[515,145],[572,72],[623,159],[588,139],[571,111],[553,145]],'#f1f8ff');
- shape([[0,251],[155,195],[305,240],[460,194],[605,252],[790,185],[900,220],[900,400],[0,400]],'#60b8a4');
- shape([[0,310],[160,273],[320,315],[520,260],[710,312],[900,265],[900,600],[0,600]],'#8dd66a');
- // Lake on horizon.
- shape([[465,270],[590,249],[732,266],[780,318],[485,328]],'#62bce6');
- // Cliffs and water: large clean shapes with thick ink outlines.
- shape([[0,395],[130,388],[215,437],[236,600],[0,600]],'#4baee2');
- shape([[0,402],[137,399],[208,455],[215,600],[0,600]],'#76c9ef',null);
- shape([[720,600],[705,500],[755,429],[780,350],[815,295],[900,295],[900,600]],'#47a9df');
- shape([[743,600],[728,504],[777,436],[798,355],[828,312],[900,312],[900,600]],'#7dd1f0',null);
- shape([[0,198],[143,193],[200,235],[204,328],[158,371],[0,361]],'#ba9192');
- shape([[0,185],[146,183],[204,229],[175,245],[0,230]],'#b6e969');
- shape([[735,169],[900,159],[900,340],[812,332],[778,284],[767,220]],'#b68f91');
- shape([[732,160],[900,154],[900,190],[771,202],[765,221]],'#b2e363');
- // Waterfall, with foamy white edges.
- shape([[811,309],[900,306],[900,382],[808,379]],'#64c9f4');
- ctx.strokeStyle='#ffffff';ctx.lineWidth=6;
- for(let i=0;i<7;i++){let x=815+i*14;ctx.beginPath();ctx.moveTo(x,315);ctx.quadraticCurveTo(x-4,348,x+1,373);ctx.stroke()}
- // Bright grassy foreground.
- shape([[0,350],[172,345],[228,385],[341,362],[474,373],[590,347],[703,360],[766,409],[720,470],[707,600],[211,600],[205,498],[142,447],[0,441]],'#b7e75c');
- // Soft sandy path.
- ctx.strokeStyle='#edc88c';ctx.lineWidth=52;ctx.lineCap='round';ctx.lineJoin='round';
- ctx.beginPath();ctx.moveTo(348,600);ctx.lineTo(370,517);ctx.lineTo(472,462);ctx.lineTo(433,371);ctx.lineTo(349,269);ctx.stroke();
- // Bridge kept completely unobstructed.
- shape([[702,487],[900,487],[900,546],[702,546]],'#b77c4f');
- for(let x=710;x<900;x+=22){ctx.strokeStyle='#704b42';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,494);ctx.lineTo(x,540);ctx.stroke()}
- ctx.strokeStyle='#2b354a';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(702,488);ctx.lineTo(900,488);ctx.moveTo(702,546);ctx.lineTo(900,546);ctx.stroke();
- // Stylised grass and wildflowers.
- for(let i=0;i<95;i++){
-  let x=(i*127+53)%W,y=320+(i*73)%278;
-  if((x<240&&y>455)||(x>710&&y>400))continue;
-  ctx.strokeStyle=i%2?'#459b57':'#65b54c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-9);ctx.moveTo(x,y);ctx.lineTo(x,y-12);ctx.moveTo(x+5,y);ctx.lineTo(x+9,y-8);ctx.stroke();
+ // Quiet lakeside clearing inspired by the simplicity of classic handheld RPG lakes.
+ ctx.fillStyle='#b5e779';ctx.fillRect(0,0,W,H);
+ // Gentle sky at the very top and a distant treeline.
+ ctx.fillStyle='#a9ddf5';ctx.fillRect(0,0,W,82);
+ shape([[0,75],[85,56],[160,77],[250,51],[360,75],[470,48],[590,72],[705,53],[810,75],[900,56],[900,126],[0,126]],'#66b79d',null);
+ // A single large, calm lake in the upper half.
+ shape([[95,132],[185,104],[335,116],[435,100],[578,121],[704,109],[815,145],[843,207],[811,263],[718,283],[590,270],[475,291],[348,273],[220,290],[120,263],[72,212]],'#4eabcc','#3d8e8b',5);
+ shape([[115,146],[203,120],[335,130],[446,116],[570,138],[698,125],[797,157],[825,205],[793,248],[706,267],[582,255],[468,275],[345,258],[226,274],[137,248],[91,211]],'#7bd0e9',null);
+ // Small, sparse water glints rather than detailed waves.
+ ctx.strokeStyle='#d6f5f5';ctx.lineWidth=3;ctx.lineCap='round';
+ for(const [x,y] of [[180,180],[328,215],[490,157],[600,223],[737,183],[455,248]]){ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x+17,y);ctx.stroke()}
+ // Shoreline and two gentle grass tones.
+ shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#a8df69',null);
+ shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#bde989',null);
+ // One modest winding footpath through the clearing.
+ ctx.strokeStyle='#e6d39b';ctx.lineWidth=43;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.beginPath();ctx.moveTo(410,600);ctx.quadraticCurveTo(450,500,490,458);ctx.quadraticCurveTo(545,408,506,355);ctx.stroke();
+ // Trees frame the clearing rather than filling the walkable space.
+ [[36,169,.85,0],[80,352,.95,1],[39,540,.85,0],[165,574,.8,0],
+  [847,156,.85,1],[872,344,.9,0],[838,552,.95,0],[726,568,.8,1],
+  [255,80,.6,1],[638,82,.6,0]].forEach(t=>cartoonTree(...t));
+ // A few low grass tufts and flowers.
+ for(let i=0;i<36;i++){
+  const x=(i*137+47)%W,y=320+(i*83)%270;
+  if((x>365&&x<560&&y>370)||(x>675&&x<785&&y>400))continue;
+  ctx.strokeStyle='#6cb35c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-8);ctx.moveTo(x,y);ctx.lineTo(x,y-11);ctx.moveTo(x+5,y);ctx.lineTo(x+8,y-8);ctx.stroke();
  }
- // Background trees, then foreground foliage.
- [[70,215,1.05,0],[125,283,.8,1],[270,280,.7,0],[608,284,.75,1],[856,250,.75,0],[42,430,.85,0],[172,485,.85,1],[610,445,.8,1],[860,440,.75,0],[86,580,.9,0],[530,574,.75,0]].forEach(t=>cartoonTree(...t));
- // Objects retain their simulation coordinates.
+ // Existing interactable objects retain their IDs and positions.
  for(const o of objects){
   if(o.kind==='berry')berryBush(o.x,o.y);
-  if(o.kind==='pond'){oval(o.x,o.y,43,24,'#6ac9eb');ctx.strokeStyle='#e3ffff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x-23,o.y-5);ctx.lineTo(o.x+8,o.y-8);ctx.stroke()}
+  if(o.kind==='pond'){oval(o.x,o.y,23,11,'#6ac9eb','#408eab',2)}
   if(o.kind==='stone')oval(o.x,o.y,20,14,'#9fa4ba');
-  if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let a=i*Math.PI*2/5;oval(o.x+Math.cos(a)*8,o.y+Math.sin(a)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
+  if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let angle=i*Math.PI*2/5;oval(o.x+Math.cos(angle)*8,o.y+Math.sin(angle)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
   if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
   if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
  }
