@@ -178,16 +178,48 @@ function draw(){
   if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
   if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
  }
- // PET: rounded blue companion with a cream face and cheerful expression.
+ // PET: a friendly, original anthropomorphic handheld game console.
+ // Bob and swinging limbs give a walking animation without changing AI movement.
  ctx.save();ctx.translate(s.x,s.y);
- oval(0,19,20,5,'rgba(39,72,69,.22)',null);
- oval(-4,2,16,20,'#298fc6');oval(0,-10,19,19,'#258ac2');
- oval(4,-5,14,15,'#f7e6b8');oval(2,8,10,11,'#f7e6b8',null);
- oval(-1,-7,2.3,3,'#26344d',null);oval(9,-7,2.3,3,'#26344d',null);
- oval(5,0,4,3,'#edb66b','#26344d',1.5);
- ctx.strokeStyle='#26344d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(6,2,5,.1,1.15);ctx.stroke();
- oval(-12,16,8,5,'#f3bf72');oval(9,16,8,5,'#f3bf72');
- oval(-17,5,6,10,'#2684b5');ctx.restore();
+ const walking=s.tick%8<6, bob=walking?Math.sin(s.tick*1.5)*2:0;
+ const mood=s.hunger>75?'hungry':s.energy<30?'sleepy':s.curiosity>65?'curious':'happy';
+ ctx.translate(0,bob);
+ oval(0,26,24,5,'rgba(33,66,67,.22)',null);
+ ctx.strokeStyle='#24384c';ctx.lineWidth=4;ctx.lineCap='round';
+ // Legs and tiny shoes
+ const swing=walking?Math.sin(s.tick*1.5)*5:0;
+ ctx.beginPath();ctx.moveTo(-10,16);ctx.lineTo(-13+swing,28);ctx.moveTo(10,16);ctx.lineTo(13-swing,28);ctx.stroke();
+ oval(-13+swing,29,6,3,'#376f80','#24384c',2);
+ oval(13-swing,29,6,3,'#376f80','#24384c',2);
+ // Arms
+ ctx.strokeStyle='#24a8a2';ctx.lineWidth=6;ctx.beginPath();
+ ctx.moveTo(-19,-3);ctx.lineTo(-27,-1-swing*.45);ctx.lineTo(-30,6-swing*.45);
+ ctx.moveTo(19,-3);ctx.lineTo(27,-1+swing*.45);ctx.lineTo(30,6+swing*.45);ctx.stroke();
+ oval(-30,6-swing*.45,3,3,'#25b9b1','#24384c',1.5);
+ oval(30,6+swing*.45,3,3,'#25b9b1','#24384c',1.5);
+ // Rounded turquoise casing, bezel and screen
+ ctx.fillStyle='#16a9a2';ctx.strokeStyle='#24384c';ctx.lineWidth=3;
+ ctx.beginPath();ctx.roundRect(-21,-29,42,47,6);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#0b817e';ctx.fillRect(-18,-25,4,36);
+ ctx.fillStyle='#c9f4dd';ctx.beginPath();ctx.roundRect(-14,-23,30,24,4);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#263d46';
+ if(mood==='sleepy'){
+  ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(-8,-11);ctx.lineTo(-3,-11);ctx.moveTo(6,-11);ctx.lineTo(11,-11);ctx.stroke();
+ }else{
+  oval(-6,-12,1.8,2.2,'#263d46',null);oval(8,-12,1.8,2.2,'#263d46',null);
+ }
+ ctx.strokeStyle='#263d46';ctx.lineWidth=1.8;ctx.beginPath();
+ if(mood==='hungry'){ctx.arc(1,-5,2.7,0,Math.PI*2)}
+ else if(mood==='sleepy'){ctx.moveTo(-2,-5);ctx.lineTo(5,-5)}
+ else{ctx.arc(1,-8,6,.2,Math.PI-.2)}
+ ctx.stroke();
+ // Speaker slot and distinctive handheld controls
+ ctx.fillStyle='#263d46';ctx.fillRect(-12,4,24,2.5);
+ ctx.fillStyle='#f4c64b';ctx.fillRect(-11,8,5,12);ctx.fillRect(-14,11,11,5);
+ oval(11,11,3.8,3.8,'#e85b88','#24384c',1.5);
+ oval(15,4,2.5,2.5,'#84d971','#24384c',1);
+ ctx.fillStyle='#4853a8';ctx.fillRect(-1,14,6,2);
+ ctx.restore();
 }
 
 function petReply(message){
