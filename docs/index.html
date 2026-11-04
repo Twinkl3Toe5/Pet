@@ -24,22 +24,86 @@ function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
 function step(){
- s.tick++;s.hunger=Math.min(100,s.hunger+.12);s.energy=Math.max(0,s.energy-.28);s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
- const score={eat:s.hunger>=65?150:0,rest:s.energy<35?140:0,explore:30+s.curiosity*.35+Math.min(8,(s.learned.explore||0)*.1)};
- const action=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];let msg='',kind='thought';
- if(action==='eat'){
-  const bushes=objects.filter(o=>o.kind==='berry'),t=bushes.sort((a,b)=>dist(s,a)-dist(s,b))[0];
-  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Found berries and ate. That was useful; I should remember this place.';kind='food';if(!s.discoveries.includes(t.id)){s.discoveries.push(t.id);s.knowledge++;msg='Discovery: berries are edible! I have remembered this bush.';kind='discovery'}}
-  else{move(t,2.7);msg='I am hungry. Heading towards the berry bush.'}
- }else if(action==='rest'){
-  if(s.energy>96){s.comfort=Math.min(100,s.comfort+.5);s.learned.rest=Math.max(0,(s.learned.rest||0)-.1);msg='Resting quietly and watching the world.'}
-  else{s.energy=Math.min(100,s.energy+1.8);msg='Taking a little rest.'}
+ s.tick++;s.hunger=Math.min(100,s.hunger+.12);s.energy=Math.max(0,s.energy-.28);
+ s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
+ // Persisted activity state is initialized lazily for existing saves.
+ if(!s.activities||typeof s.activities!=='object')s.activities={};
+ if(!s.activityTarget||!objects.some(o=>o.id===s.activityTarget))s.activityTarget=null;
+ let msg='',kind='thought';
+ const bushes=objects.filter(o=>o.kind==='berry');
+ const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
+ const choice=()=>{
+  // Avoid repeating the same activity indefinitely; revisit places with new purposes.
+  const options=[
+   {id:'lake',object:'pond',name:'watching ripples on the lake'},
+   {id:'shade',object:'tree',name:'relaxing under the old tree'},
+   {id:'flowers',object:'flower',name:'checking on the wildflower'},
+   {id:'stones',object:'stone',name:'examining the strange stone'},
+   {id:'mushrooms',object:'mushroom',name:'studying the mushroom'},
+   {id:'berries',object:'berry2',name:'checking whether the berries have grown'},
+   {id:'shore',object:'pond',name:'looking for movement in the water'}
+  ];
+  const sorted=options.map(o=>({...o,last:s.activities[o.id]||-9999}))
+   .sort((a,b)=>a.last-b.last);
+  return sorted[Math.floor(Math.random()*Math.min(3,sorted.length))];
+ };
+ if(s.hunger>=65){
+  const t=bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
+  s.activityTarget=null;
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate some berries. Feeling much better!';kind='food'}
+  else{move(t,2.7);msg='Feeling hungry. Heading for berries.'}
+ }else if(s.energy<35){
+  s.activityTarget=null;s.energy=Math.min(100,s.energy+2.1);
+  s.comfort=Math.min(100,s.comfort+.25);
+  msg='Taking a proper rest and recharging.';kind='rest';
+ }else if(s.comfort<35){
+  const t=objects.find(o=>o.id==='tree');
+  s.activityTarget=null;
+  if(dist(s,t)>35){move(t,2.2);msg='Looking for a peaceful spot beneath the tree.'}
+  else{s.comfort=Math.min(100,s.comfort+2.5);s.energy=Math.min(100,s.energy+.15);
+   msg='Enjoying the shade. This place feels safe and familiar.';kind='comfort'}
+ }else if(unknown.length){
+  const t=unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];s.activityTarget=null;
+  if(dist(s,t)<22){
+   s.discoveries.push(t.id);s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
+   s.learned.explore=(s.learned.explore||0)+2.2;
+   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.'};
+   msg='Discovery: '+descriptions[t.kind];kind='discovery';
+  }else{move(t,2.3);msg='Something unfamiliar caught my attention.'}
  }else{
-  const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
-  if(unknown.length){const t=unknown.sort((a,b)=>dist(s,a)-dist(s,b))[0];if(dist(s,t)<22){s.discoveries.push(t.id);s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);s.learned.explore=(s.learned.explore||0)+2.2;const descriptions={pond:'The pond is cool water. I wonder what lives in it.',stone:'A heavy stone. It does not move easily.',flower:'A bright flower. It has an interesting smell.',tree:'A very large tree. Its shade feels pleasant.',mushroom:'A strange mushroom. I do not know if it is safe, so I will not eat it.',berry:'A bush with colourful berries. I should investigate those.'};msg='Discovery: '+descriptions[t.kind];kind='discovery'}else{move(t,2.3);msg='Something nearby is unfamiliar. I want to investigate.'}}
-  else{move(objects[Math.floor(Math.random()*objects.length)],1.8);msg='I have explored much of this place. I am wandering and revisiting familiar spots.'}
+  // Once all objects are discovered, PET pursues varied activities rather than looping dialogue.
+  if(!s.activityTarget){
+   const next=choice();s.activityTarget=next.id;
+  }
+  const activities={
+   lake:{object:'pond',distance:60,comfort:.65,curiosity:1.3,thoughts:['The water is making new patterns today.','I wonder what is beneath the surface.','Watching the reflections makes me feel calm.']},
+   shade:{object:'tree',distance:32,comfort:2.4,energy:.3,thoughts:['This is a lovely place to unwind.','I think this tree might be my favourite resting spot.','The shade feels wonderful.']},
+   flowers:{object:'flower',distance:27,comfort:1,curiosity:2,thoughts:['I wonder if this flower has changed since last time.','A tiny insect visited the flower!','The petals are brighter than I remembered.']},
+   stones:{object:'stone',distance:29,curiosity:2,knowledge:true,thoughts:['I noticed a new pattern on the stone.','I wonder how old this stone is.','The stone is warmer on one side.']},
+   mushrooms:{object:'mushroom',distance:28,curiosity:2,thoughts:['I should observe this mushroom, not eat it.','The mushroom seems a little different today.','Perhaps it grows after rain.']},
+   berries:{object:'berry2',distance:29,comfort:.6,thoughts:['I should remember where the best berries grow.','The bush looks healthy.','Maybe the berries will ripen soon.']},
+   shore:{object:'pond',distance:65,comfort:1,curiosity:1.5,thoughts:['Was that a fish?','There are little ripples near the shore.','I could sit here and listen to the lake.']}
+  };
+  const activity=activities[s.activityTarget]||activities.lake;
+  const t=objects.find(o=>o.id===activity.object);
+  if(dist(s,t)>activity.distance){move(t,2.1);msg='Going to spend some time '+(s.activityTarget==='shade'?'under the tree':'by '+t.label.toLowerCase())+'.'}
+  else{
+   s.activityProgress=(s.activityProgress||0)+1;
+   s.comfort=Math.min(100,s.comfort+(activity.comfort||.1));
+   s.curiosity=Math.max(0,s.curiosity-(activity.curiosity||.7));
+   s.energy=Math.min(100,s.energy+(activity.energy||0));
+   if(s.activityProgress>=6){
+    const count=(s.activities[s.activityTarget]||0);
+    msg=activity.thoughts[count%activity.thoughts.length];kind='activity';
+    if(activity.knowledge&&count%4===0){s.knowledge++;msg+=' I learned something new.'}
+    s.activities[s.activityTarget]=s.tick;
+    s.activityTarget=null;s.activityProgress=0;
+   }else{msg='Spending a little time here.'}
+  }
  }
- s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));if(kind!=='thought'||s.tick%5===0)log(kind,msg);save();render();
+ s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));
+ if(kind!=='thought'||s.tick%5===0)log(kind,msg);
+ save();render();
 }
 
 const scenery=[
