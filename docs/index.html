@@ -254,6 +254,11 @@ function cartoonTree(x,y,z=1,kind=0){
    oval(0,-69,37,31,'#b1e64f');oval(-23,-36,25,20,'#a6df46');
    oval(22,-35,24,20,'#b8e957');
  }
+ // Bark grain and small canopy highlights make each tree feel layered.
+ ctx.strokeStyle='rgba(79,45,30,.45)';ctx.lineWidth=1.5;
+ for(const dx of [-4,2,6]){ctx.beginPath();ctx.moveTo(dx,12);ctx.lineTo(dx-2,-14);ctx.stroke()}
+ if(kind===0){for(const [dx,dy] of [[-27,-58],[4,-80],[26,-57],[-9,-43]])oval(dx,dy,9,5,'rgba(230,255,151,.42)')}
+ else{for(const [dx,dy] of [[-9,-61],[10,-44],[-4,-79]])oval(dx,dy,5,3,'rgba(181,255,222,.4)')}
  ctx.restore();
 }
 function berryBush(x,y){
@@ -269,18 +274,42 @@ function draw(){
  // Gentle sky at the very top and a distant treeline.
  ctx.fillStyle='#a9ddf5';ctx.fillRect(0,0,W,82);
  shape([[0,75],[85,56],[160,77],[250,51],[360,75],[470,48],[590,72],[705,53],[810,75],[900,56],[900,126],[0,126]],'#66b79d',null);
+ // Distant hills and layered woodland silhouettes.
+ shape([[0,87],[95,48],[190,84],[312,40],[432,84],[548,47],[664,83],[783,45],[900,78],[900,126],[0,126]],'#83c5a8');
+ shape([[0,105],[80,77],[161,105],[253,72],[355,104],[457,77],[571,108],[684,72],[791,103],[900,80],[900,135],[0,135]],'#5ba88d');
  // A single large, calm lake in the upper half.
  shape([[95,132],[185,104],[335,116],[435,100],[578,121],[704,109],[815,145],[843,207],[811,263],[718,283],[590,270],[475,291],[348,273],[220,290],[120,263],[72,212]],'#4eabcc','#3d8e8b',5);
  shape([[115,146],[203,120],[335,130],[446,116],[570,138],[698,125],[797,157],[825,205],[793,248],[706,267],[582,255],[468,275],[345,258],[226,274],[137,248],[91,211]],'#7bd0e9',null);
  // Small, sparse water glints rather than detailed waves.
  ctx.strokeStyle='#d6f5f5';ctx.lineWidth=3;ctx.lineCap='round';
  for(const [x,y] of [[180,180],[328,215],[490,157],[600,223],[737,183],[455,248]]){ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x+17,y);ctx.stroke()}
+ // Fine animated water ripples, lily pads and reed clusters.
+ ctx.save();ctx.beginPath();ctx.ellipse(450,198,375,89,0,0,Math.PI*2);ctx.clip();
+ for(let i=0;i<32;i++){
+  const x=115+(i*97)%690,y=130+(i*41)%135,drift=Math.sin(s.tick*.035+i)*7;
+  ctx.strokeStyle=i%3===0?'rgba(245,255,255,.65)':'rgba(30,121,157,.24)';
+  ctx.lineWidth=i%3===0?2:1.5;ctx.beginPath();ctx.moveTo(x+drift,y);ctx.lineTo(x+drift+13+(i%4)*5,y);ctx.stroke();
+ }
+ for(const [x,y] of [[255,246],[665,238],[738,211]]){
+  oval(x,y,13,5,'#4d9d69','#337b69',1);oval(x+4,y-2,3,3,'#e9b7d2');
+ }
+ ctx.restore();
  // Shoreline and two gentle grass tones.
  shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#a8df69',null);
  shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#bde989',null);
+ // Soft grassy texture, pebbles and tiny flowers (deterministic placement).
+ for(let i=0;i<115;i++){
+  const x=(i*173+37)%W,y=316+(i*89)%277;
+  ctx.strokeStyle=i%3===0?'#7bbd58':'#96d477';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y-6);ctx.moveTo(x,y);ctx.lineTo(x+3,y-5);ctx.stroke();
+  if(i%13===0){oval(x+9,y,3,2,'#a8a89a');oval(x+13,y-2,2,1,'#e5e1c7')}
+  if(i%17===0){oval(x,y-8,3,3,i%2?'#fff2bd':'#e8c1f0','#6ca65b',.6)}
+ }
  // One modest winding footpath through the clearing.
  ctx.strokeStyle='#e6d39b';ctx.lineWidth=43;ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(410,600);ctx.quadraticCurveTo(450,500,490,458);ctx.quadraticCurveTo(545,408,506,355);ctx.stroke();
+ ctx.strokeStyle='rgba(255,246,206,.55)';ctx.lineWidth=12;ctx.stroke();
+ for(let i=0;i<18;i++){const x=400+(i*37)%120,y=360+(i*43)%235;oval(x,y,2+(i%3),1.5,'rgba(143,116,76,.38)')}
  // Trees frame the clearing rather than filling the walkable space.
  [[36,169,.85,0],[80,352,.95,1],[39,540,.85,0],[165,574,.8,0],
   [847,156,.85,1],[872,344,.9,0],[838,552,.95,0],[726,568,.8,1],
@@ -347,7 +376,10 @@ function draw(){
  ctx.fillStyle='#16a9a2';ctx.strokeStyle='#24384c';ctx.lineWidth=3;
  ctx.beginPath();ctx.roundRect(-21,-29,42,47,6);ctx.fill();ctx.stroke();
  ctx.fillStyle='#0b817e';ctx.fillRect(-18,-25,4,36);
+ ctx.fillStyle='rgba(187,255,241,.35)';ctx.fillRect(12,-24,3,34);
+ ctx.fillStyle='#46cfc3';ctx.fillRect(-16,-25,25,2);
  ctx.fillStyle='#c9f4dd';ctx.beginPath();ctx.roundRect(-14,-23,30,24,4);ctx.fill();ctx.stroke();
+ ctx.fillStyle='rgba(255,255,255,.24)';ctx.fillRect(-12,-21,9,3);
  ctx.fillStyle='#263d46';
  if(mood==='sleepy'){
   ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(-8,-11);ctx.lineTo(-3,-11);ctx.moveTo(6,-11);ctx.lineTo(11,-11);ctx.stroke();
@@ -363,6 +395,7 @@ function draw(){
  ctx.fillStyle='#263d46';ctx.fillRect(-12,4,24,2.5);
  ctx.fillStyle='#f4c64b';ctx.fillRect(-11,8,5,12);ctx.fillRect(-14,11,11,5);
  oval(11,11,3.8,3.8,'#e85b88','#24384c',1.5);
+ oval(10,10,1.2,1.2,'#ffdbe9');
  oval(15,4,2.5,2.5,'#84d971','#24384c',1);
  ctx.fillStyle='#4853a8';ctx.fillRect(-1,14,6,2);
  ctx.restore();
