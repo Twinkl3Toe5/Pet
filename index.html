@@ -283,7 +283,15 @@ function berryBush(x,y){
 }
 function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
 function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
-function updateWorldLabels(){ /* Every object's label stays visible beside its sprite. */ }
+function updateWorldLabels(){
+ // Follow PET's actual chosen destination, not whichever object is closest.
+ const activityObjects={lake:'pond',shore:'pond',shade:'tree',flowers:'flower',stones:'stone',mushrooms:'mushroom',berries:'berry2',reading:'book'};
+ const task=s.task;
+ const targetId=task&&typeof task==='object'
+  ?(task.type==='activity'?activityObjects[task.target]:task.type==='rest'?null:task.target)
+  :null;
+ for(const el of worldlabels.children)el.hidden=el.dataset.objectId!==targetId;
+}
 function draw(){
  updateWorldLabels();
  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
