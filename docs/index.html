@@ -4,9 +4,9 @@
 :root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#304638;--text:#e8f0e9;--muted:#9bb0a0;--green:#a7dc91}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;display:block;border-radius:10px;background:#294a32}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}.dialogue{display:flex;flex-direction:column;gap:10px}.chatlog{height:220px;overflow:auto;background:#111c15;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}.bubble{max-width:88%;padding:9px 11px;border-radius:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.pet{background:#294b35;align-self:flex-start;border-bottom-left-radius:3px}.bubble.you{background:#34404a;align-self:flex-end;border-bottom-right-radius:3px}.chatmeta{font-size:10px;color:var(--muted);margin-bottom:3px}.chatform{display:flex;gap:8px}.chatform input{min-width:0;flex:1;background:#111c15;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}.chatform input:focus{outline:2px solid var(--green);outline-offset:1px}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
 </style></head><body>
-<header><div><h1>P E T</h1><small>A small life, exploring a mountain region</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
+<header><div><h1>P E T</h1><small>A small life in a colourful cartoon world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
-<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>Forests · lakes · mountains · discoveries</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A colourful world to explore</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
 <section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
@@ -92,69 +92,102 @@ function tileBush(x,y){
  ctx.fillStyle='#163f33';ctx.fillRect(x-20,y-12,40,27);
  for(let i=0;i<5;i++){let xx=x-15+i*8;polygon([[xx-5,y-3],[xx,y-16-(i%2)*4],[xx+7,y-2],[xx+4,y+7]],i%2?'#2e8455':'#4da76a')}
 }
-function draw(){
- ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
- // Grass and natural ground variation
- ctx.fillStyle='#70b96d';ctx.fillRect(0,0,W,H);
- for(let i=0;i<450;i++){const x=(i*173+23)%W,y=(i*97+41)%H;ctx.fillStyle=i%3?'#79c476':'#5ba963';ctx.fillRect(x,y,9+(i%3)*4,4)}
- // Distant mountains and forested highlands
- polygon([[0,0],[900,0],[900,105],[800,86],[720,112],[645,78],[560,107],[470,68],[385,108],[290,72],[180,110],[80,72],[0,100]],'#527c80');
- polygon([[220,0],[335,0],[385,65],[445,5],[510,82],[575,0],[720,0],[650,86],[550,113],[430,92],[320,113]],'#778aab');
- polygon([[365,0],[405,49],[445,5],[480,58],[530,0]],'#d6e6ef');
- polygon([[390,0],[405,18],[418,0]],'#ffffff');
- // Raised cliffs on left and right
- polygon([[0,124],[150,124],[198,172],[198,236],[0,236]],'#87674f');
- polygon([[0,124],[150,124],[198,172],[178,181],[0,174]],'#5b9d5c');
- polygon([[728,118],[900,110],[900,306],[792,306],[755,260],[755,195]],'#87674f');
- polygon([[728,118],[900,110],[900,150],[762,162],[755,195],[728,174]],'#65a962');
- for(let i=0;i<17;i++){ctx.fillStyle=i%2?'#ad825e':'#684e44';ctx.fillRect((i*47)%190,185+(i%3)*13,8,22);ctx.fillRect(765+(i*31)%130,192+(i%4)*22,7,24)}
- // Winding river, lakes, and waterfall
- polygon([[0,430],[145,425],[194,455],[230,503],[214,600],[0,600]],'#346c9b');
- polygon([[0,441],[145,435],[186,462],[215,512],[199,600],[0,600]],'#55a4d0');
- polygon([[720,600],[708,510],[754,449],[775,382],[803,320],[900,310],[900,600]],'#367cac');
- polygon([[744,600],[735,512],[777,450],[794,385],[821,327],[900,329],[900,600]],'#63b9e2');
- ctx.fillStyle='#d5f4fa';for(let i=0;i<20;i++){let x=792+(i*17)%105,y=336+(i*31)%110;ctx.fillRect(x,y,13,3)}
- // Waterfall tiers
- ctx.fillStyle='#a3e4ff';ctx.fillRect(795,296,105,16);ctx.fillStyle='#e6faff';for(let i=0;i<8;i++)ctx.fillRect(799+i*14,315,5,32);
- // Paths
- ctx.strokeStyle='#ddc78d';ctx.lineWidth=64;ctx.lineCap='square';ctx.beginPath();ctx.moveTo(325,600);ctx.lineTo(340,500);ctx.lineTo(445,424);ctx.lineTo(430,320);ctx.lineTo(360,248);ctx.stroke();
- ctx.strokeStyle='#ebd9a2';ctx.lineWidth=45;ctx.beginPath();ctx.moveTo(325,600);ctx.lineTo(340,500);ctx.lineTo(445,424);ctx.lineTo(430,320);ctx.lineTo(360,248);ctx.stroke();
- // Wooden bridge across the river
- ctx.fillStyle='#624431';ctx.fillRect(705,480,195,18);ctx.fillRect(705,525,195,12);
- ctx.fillStyle='#c38b53';ctx.fillRect(705,490,195,36);
- for(let x=711;x<900;x+=19){ctx.fillStyle='#8a5d3e';ctx.fillRect(x,490,3,35)}
- // Tall grass patches
- for(let k=0;k<4;k++){const [bx,by]=[[245,295],[500,420],[615,490],[565,250]][k];for(let i=0;i<20;i++){const x=bx+(i%5)*15,y=by+Math.floor(i/5)*13;polygon([[x-6,y+9],[x-6,y-4],[x,y+1],[x+4,y-8],[x+9,y+9]],i%2?'#348b50':'#237044')}}
- // Forest trees
- scenery.forEach(([x,y,z],i)=>tree(x,y,z,[0,1,2,3,0,1,3,2,4][i%9]));
- // Pixel scenery details
- for(let i=0;i<85;i++){const x=(i*131+63)%W,y=160+(i*73)%(H-170);if((x>700&&y>310)||(x<220&&y>430))continue;ctx.fillStyle=i%2?'#e9e7aa':'#f2d6e4';ctx.fillRect(x,y,4,4);ctx.fillStyle='#36874a';ctx.fillRect(x+2,y+4,2,5)}
- // World objects stay in their original positions so PET's AI is unaffected
- for(const o of objects){
- ctx.save();ctx.translate(o.x,o.y);
- if(o.kind==='berry'){
- tileBush(0,0);for(let i=0;i<5;i++){ctx.fillStyle='#dc5659';ctx.fillRect(-14+(i*11)%29,-10+(i*7)%19,7,7);ctx.fillStyle='#f8a18c';ctx.fillRect(-13+(i*11)%29,-9+(i*7)%19,2,2)}
- }else if(o.kind==='pond'){
- ctx.fillStyle='#315e7c';ctx.beginPath();ctx.ellipse(0,0,49,29,0,0,7);ctx.fill();ctx.fillStyle='#58a6c9';ctx.beginPath();ctx.ellipse(0,-2,42,23,0,0,7);ctx.fill();ctx.fillStyle='#b0e8ef';ctx.fillRect(-18,-9,23,3);
- }else if(o.kind==='stone'){
- polygon([[-20,12],[-17,-8],[-3,-20],[17,-13],[23,8],[10,17]],'#586a71');polygon([[-16,-8],[-3,-20],[17,-13],[4,-1],[-12,1]],'#abb8b7');
- }else if(o.kind==='flower'){
- ctx.fillStyle='#287c42';ctx.fillRect(-2,0,4,17);for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle='#f5a4c9';ctx.fillRect(Math.round(Math.cos(a)*9)-5,Math.round(Math.sin(a)*9)-5,10,10)}ctx.fillStyle='#f5d878';ctx.fillRect(-5,-5,10,10);
- }else if(o.kind==='tree'){tree(0,10,.75,1)}
- else if(o.kind==='mushroom'){ctx.fillStyle='#f7e6bc';ctx.fillRect(-5,0,10,16);polygon([[-17,2],[-11,-12],[10,-12],[17,2]],'#bf555d');ctx.fillStyle='#ffe5cf';ctx.fillRect(-5,-9,6,4)}
+
+function shape(points,fill,stroke='#26344d',width=3){
+ ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
+ for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
+ ctx.closePath();ctx.fillStyle=fill;ctx.fill();
+ if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.lineJoin='round';ctx.stroke()}
+}
+function oval(x,y,rx,ry,fill,stroke='#26344d',width=3){
+ ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
+ if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}
+}
+function cloud(x,y,z=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+ oval(0,0,51,13,'#fffdf5');oval(-26,-9,23,19,'#fffdf5');oval(5,-17,31,25,'#fffdf5');oval(36,-5,21,17,'#fffdf5');
  ctx.restore();
- ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#203a32';ctx.strokeText(o.label,o.x,o.y+42);ctx.fillStyle='#fff8e6';ctx.fillText(o.label,o.x,o.y+42);
+}
+function cartoonTree(x,y,z=1,kind=0){
+ ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+ ctx.strokeStyle='#273b47';ctx.lineWidth=3;ctx.fillStyle='#a46b43';
+ ctx.beginPath();ctx.moveTo(-9,22);ctx.lineTo(-7,-29);ctx.lineTo(-18,-44);ctx.lineTo(-9,-48);ctx.lineTo(1,-35);ctx.lineTo(10,-55);ctx.lineTo(19,-51);ctx.lineTo(9,-26);ctx.lineTo(10,22);ctx.closePath();ctx.fill();ctx.stroke();
+ if(kind===1){
+   shape([[-33,-10],[-16,-39],[0,-72],[16,-39],[34,-10]],'#1d8d80');
+   shape([[-27,-26],[-12,-53],[0,-82],[12,-53],[27,-26]],'#35b39c');
+   shape([[-18,-46],[0,-94],[18,-46]],'#51c4a3');
+ }else{
+   oval(-18,-49,27,27,'#9bd848');oval(17,-51,30,29,'#b6e95b');
+   oval(0,-69,37,31,'#b1e64f');oval(-23,-36,25,20,'#a6df46');
+   oval(22,-35,24,20,'#b8e957');
  }
- // PET sprite: chunky outlined pixel creature, always above the terrain
- ctx.save();ctx.translate(Math.round(s.x),Math.round(s.y));
- ctx.fillStyle='rgba(20,49,39,.28)';ctx.fillRect(-17,13,34,7);
- ctx.fillStyle='#203a50';ctx.fillRect(-17,-14,34,30);ctx.fillRect(-12,-22,24,10);
- ctx.fillStyle='#5b8fb1';ctx.fillRect(-13,-15,27,26);ctx.fillRect(-9,-20,18,8);
- ctx.fillStyle='#e9ddb3';ctx.fillRect(-8,-9,21,21);ctx.fillStyle='#1b3444';ctx.fillRect(-4,-6,4,5);ctx.fillRect(8,-6,4,5);
- ctx.fillStyle='#d89c80';ctx.fillRect(2,1,5,3);
- ctx.fillStyle='#243e52';ctx.fillRect(-14,12,10,7);ctx.fillRect(7,12,10,7);
- ctx.fillStyle='#86b6c9';ctx.fillRect(-21,-1,8,12);ctx.fillRect(14,-1,8,12);
  ctx.restore();
+}
+function berryBush(x,y){
+ oval(x,y,29,20,'#399b5b');oval(x-14,y-8,17,15,'#56bb62');oval(x+12,y-8,19,17,'#5dbd60');
+ for(let i=0;i<5;i++){const bx=x-19+(i*17)%39,by=y-13+(i*11)%21;oval(bx,by,5,5,'#f05b6d','#3a4d47',1.5)}
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
+ // Sky, distant mountains, and rolling hills.
+ ctx.fillStyle='#75cafa';ctx.fillRect(0,0,W,H);
+ cloud(180,64,1);cloud(660,47,1.15);cloud(810,95,.7);
+ shape([[270,235],[420,25],[505,160],[572,72],[700,240]],'#888bc7');
+ shape([[345,129],[420,25],[479,122],[447,105],[420,78],[398,113]],'#f1f8ff');
+ shape([[515,145],[572,72],[623,159],[588,139],[571,111],[553,145]],'#f1f8ff');
+ shape([[0,251],[155,195],[305,240],[460,194],[605,252],[790,185],[900,220],[900,400],[0,400]],'#60b8a4');
+ shape([[0,310],[160,273],[320,315],[520,260],[710,312],[900,265],[900,600],[0,600]],'#8dd66a');
+ // Lake on horizon.
+ shape([[465,270],[590,249],[732,266],[780,318],[485,328]],'#62bce6');
+ // Cliffs and water: large clean shapes with thick ink outlines.
+ shape([[0,395],[130,388],[215,437],[236,600],[0,600]],'#4baee2');
+ shape([[0,402],[137,399],[208,455],[215,600],[0,600]],'#76c9ef',null);
+ shape([[720,600],[705,500],[755,429],[780,350],[815,295],[900,295],[900,600]],'#47a9df');
+ shape([[743,600],[728,504],[777,436],[798,355],[828,312],[900,312],[900,600]],'#7dd1f0',null);
+ shape([[0,198],[143,193],[200,235],[204,328],[158,371],[0,361]],'#ba9192');
+ shape([[0,185],[146,183],[204,229],[175,245],[0,230]],'#b6e969');
+ shape([[735,169],[900,159],[900,340],[812,332],[778,284],[767,220]],'#b68f91');
+ shape([[732,160],[900,154],[900,190],[771,202],[765,221]],'#b2e363');
+ // Waterfall, with foamy white edges.
+ shape([[811,309],[900,306],[900,382],[808,379]],'#64c9f4');
+ ctx.strokeStyle='#ffffff';ctx.lineWidth=6;
+ for(let i=0;i<7;i++){let x=815+i*14;ctx.beginPath();ctx.moveTo(x,315);ctx.quadraticCurveTo(x-4,348,x+1,373);ctx.stroke()}
+ // Bright grassy foreground.
+ shape([[0,350],[172,345],[228,385],[341,362],[474,373],[590,347],[703,360],[766,409],[720,470],[707,600],[211,600],[205,498],[142,447],[0,441]],'#b7e75c');
+ // Soft sandy path.
+ ctx.strokeStyle='#edc88c';ctx.lineWidth=52;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.beginPath();ctx.moveTo(348,600);ctx.lineTo(370,517);ctx.lineTo(472,462);ctx.lineTo(433,371);ctx.lineTo(349,269);ctx.stroke();
+ // Bridge kept completely unobstructed.
+ shape([[702,487],[900,487],[900,546],[702,546]],'#b77c4f');
+ for(let x=710;x<900;x+=22){ctx.strokeStyle='#704b42';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,494);ctx.lineTo(x,540);ctx.stroke()}
+ ctx.strokeStyle='#2b354a';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(702,488);ctx.lineTo(900,488);ctx.moveTo(702,546);ctx.lineTo(900,546);ctx.stroke();
+ // Stylised grass and wildflowers.
+ for(let i=0;i<95;i++){
+  let x=(i*127+53)%W,y=320+(i*73)%278;
+  if((x<240&&y>455)||(x>710&&y>400))continue;
+  ctx.strokeStyle=i%2?'#459b57':'#65b54c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-9);ctx.moveTo(x,y);ctx.lineTo(x,y-12);ctx.moveTo(x+5,y);ctx.lineTo(x+9,y-8);ctx.stroke();
+ }
+ // Background trees, then foreground foliage.
+ [[70,215,1.05,0],[125,283,.8,1],[270,280,.7,0],[608,284,.75,1],[856,250,.75,0],[42,430,.85,0],[172,485,.85,1],[610,445,.8,1],[860,440,.75,0],[86,580,.9,0],[530,574,.75,0]].forEach(t=>cartoonTree(...t));
+ // Objects retain their simulation coordinates.
+ for(const o of objects){
+  if(o.kind==='berry')berryBush(o.x,o.y);
+  if(o.kind==='pond'){oval(o.x,o.y,43,24,'#6ac9eb');ctx.strokeStyle='#e3ffff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x-23,o.y-5);ctx.lineTo(o.x+8,o.y-8);ctx.stroke()}
+  if(o.kind==='stone')oval(o.x,o.y,20,14,'#9fa4ba');
+  if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let a=i*Math.PI*2/5;oval(o.x+Math.cos(a)*8,o.y+Math.sin(a)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
+  if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
+  if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
+ }
+ // PET: rounded blue companion with a cream face and cheerful expression.
+ ctx.save();ctx.translate(s.x,s.y);
+ oval(0,19,20,5,'rgba(39,72,69,.22)',null);
+ oval(-4,2,16,20,'#298fc6');oval(0,-10,19,19,'#258ac2');
+ oval(4,-5,14,15,'#f7e6b8');oval(2,8,10,11,'#f7e6b8',null);
+ oval(-1,-7,2.3,3,'#26344d',null);oval(9,-7,2.3,3,'#26344d',null);
+ oval(5,0,4,3,'#edb66b','#26344d',1.5);
+ ctx.strokeStyle='#26344d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(6,2,5,.1,1.15);ctx.stroke();
+ oval(-12,16,8,5,'#f3bf72');oval(9,16,8,5,'#f3bf72');
+ oval(-17,5,6,10,'#2684b5');ctx.restore();
 }
 
 function petReply(message){
