@@ -21,16 +21,17 @@ const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world
 // Render to a genuinely low-resolution pixel buffer, then upscale with nearest-neighbour.
 // All AI and collision coordinates remain in the original 900 x 600 world.
 ctx.setTransform(.5,0,0,.5,0,0);
-const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'}];
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'},{id:'ball',kind:'ball',x:400,y:490,label:'Play ball'}];
 const worldlabels=document.getElementById('worldlabels');
 for(const o of objects){const el=document.createElement('span');el.className='worldlabel';el.textContent=o.label;el.dataset.objectId=o.id;el.style.left=(o.x/W*100)+'%';el.style.top=((o.y-26)/H*100)+'%';worldlabels.appendChild(el)}
-const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
+const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0,play:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
 let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
 if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];
 if(typeof s.name!=='string')s.name='PET';
 if(!s.personality||typeof s.personality!=='object')s.personality={};
 if(!Array.isArray(s.facts))s.facts=[];
 if(!Array.isArray(s.journal))s.journal=[];
+if(!s.ball||!Number.isFinite(s.ball.x)||!Number.isFinite(s.ball.y))s.ball={x:400,y:490};
 let paused=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
 function dayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -96,7 +97,7 @@ function step(){
  s.curiosity=Math.min(100,s.curiosity+.024);s.comfort=Math.max(0,s.comfort-.008);
  // Persisted activity state is initialized lazily for existing saves.
  if(!s.activities||typeof s.activities!=='object')s.activities={};
- if(!['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.activityTarget))s.activityTarget=null;
+ if(!['lake','shade','flowers','stones','mushrooms','berries','shore','reading','play'].includes(s.activityTarget))s.activityTarget=null;
  if(s.discoveryTarget&&!objects.some(o=>o.id===s.discoveryTarget&&!s.discoveries.includes(o.id)))s.discoveryTarget=null;
  if(s.activityTarget&&s.activityProgress==null)s.activityProgress=0;
  let msg='',kind='thought';
@@ -129,7 +130,7 @@ function step(){
  if(s.task && !['eat','rest','comfort','discover','activity'].includes(s.task.type))s.task=null;
  if(s.task?.type==='discover' && (!objects.some(o=>o.id===s.task.target)||s.discoveries.includes(s.task.target)))s.task=null;
  if(s.task?.type==='eat' && !objects.some(o=>o.id===s.task.target&&['berry','apple','carrot','nuts'].includes(o.kind)))s.task=null;
- if(s.task?.type==='activity' && !['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.task.target))s.task=null;
+ if(s.task?.type==='activity' && !['lake','shade','flowers','stones','mushrooms','berries','shore','reading','play'].includes(s.task.target))s.task=null;
  if(!s.task){
   if(s.hunger>=65)s.task={type:'eat',target:pickFood().id};
   else if(s.energy<35)s.task={type:'rest'};
@@ -163,7 +164,7 @@ function step(){
   if(dist(s,t)<22){
    s.discoveries.push(t.id);s.discoveryTarget=null;s.task=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
-   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.',apple:'An apple tree with edible fruit.',carrot:'A patch of fresh carrots.',nuts:'A hazelnut bush with nutritious nuts.'};
+   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.',apple:'An apple tree with edible fruit.',carrot:'A patch of fresh carrots.',nuts:'A hazelnut bush with nutritious nuts.',ball:'A colourful ball! I can kick it and chase it.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
   }else{move(t,3.68);msg='Something unfamiliar caught my attention.'}
  }else if(s.task.type==='activity'){
@@ -176,13 +177,16 @@ function step(){
    mushrooms:{object:'mushroom',distance:28,curiosity:2,thoughts:['I should observe this mushroom, not eat it.','The mushroom seems a little different today.','Perhaps it grows after rain.']},
    berries:{object:'berry2',distance:29,comfort:.6,thoughts:['I should remember where the best berries grow.','The bush looks healthy.','Maybe the berries will ripen soon.']},
    shore:{object:'pond',distance:65,comfort:1,curiosity:1.5,thoughts:['Was that a fish?','There are little ripples near the shore.','I could sit here and listen to the lake.']},
-   reading:{object:'book',distance:28,curiosity:3,energy:-.4,thoughts:['I wonder what I can learn next.','There are so many subjects to investigate.']}
+   reading:{object:'book',distance:28,curiosity:3,energy:-.4,thoughts:['I wonder what I can learn next.','There are so many subjects to investigate.']},
+   play:{object:'ball',distance:30,comfort:2,curiosity:1,energy:-1,thoughts:['I had so much fun kicking my ball around!','I chased my ball across the grass.','I think playing ball is my new favourite game!']}
   };
   const activity=activities[s.activityTarget]||activities.lake;
   const t=objects.find(o=>o.id===activity.object);
+  if(activity.object==='ball'){t.x=s.ball.x;t.y=s.ball.y}
   if(dist(s,t)>activity.distance){move(t,3.36);if(kind!=='plan')msg='On my way to '+t.label.toLowerCase()+'.'}
   else{
    s.activityProgress=(s.activityProgress||0)+1;
+   if(s.activityTarget==='play'&&s.activityProgress%5===0){const a=(s.tick%12)*Math.PI/6;s.ball.x=Math.max(45,Math.min(W-45,s.ball.x+Math.cos(a)*45));s.ball.y=Math.max(100,Math.min(H-40,s.ball.y+Math.sin(a)*45));t.x=s.ball.x;t.y=s.ball.y}
    s.comfort=Math.min(100,s.comfort+(activity.comfort||.1)*.2);
    s.curiosity=Math.max(0,s.curiosity-(activity.curiosity||.7)*.2);
    s.energy=Math.min(100,s.energy+(activity.energy||0)*.2);
@@ -316,8 +320,9 @@ function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinu
 function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
 function updateWorldLabels(){
  // Follow PET's actual chosen destination, not whichever object is closest.
- const activityObjects={lake:'pond',shore:'pond',shade:'tree',flowers:'flower',stones:'stone',mushrooms:'mushroom',berries:'berry2',reading:'book'};
+ const activityObjects={lake:'pond',shore:'pond',shade:'tree',flowers:'flower',stones:'stone',mushrooms:'mushroom',berries:'berry2',reading:'book',play:'ball'};
  const task=s.task;
+ const ballObject=objects.find(o=>o.id==='ball');if(ballObject&&s.ball){ballObject.x=s.ball.x;ballObject.y=s.ball.y;const ballLabel=worldlabels.querySelector('[data-object-id="ball"]');if(ballLabel){ballLabel.style.left=(s.ball.x/W*100)+'%';ballLabel.style.top=((s.ball.y-26)/H*100)+'%'}}
  const targetId=task&&typeof task==='object'
   ?(task.type==='activity'?activityObjects[task.target]:task.type==='rest'?null:task.target)
   :null;
@@ -400,6 +405,7 @@ function draw(){
   if(o.kind==='flower'){px(o.x-2,o.y,4,17,'#498e56');for(const [dx,dy] of [[0,-11],[-9,-3],[9,-3],[0,5]])leaf(o.x+dx,o.y+dy,7,'#f8e5e5');leaf(o.x,o.y-2,5,'#e9bd6e')}
   if(o.kind==='tree')tree(o.x,o.y,.75);
   if(o.kind==='mushroom'){px(o.x-4,o.y-3,9,15,'#eee2c6');leaf(o.x,o.y-7,19,'#ba666a');px(o.x-8,o.y-14,5,4,'#f8dfc4');px(o.x+7,o.y-11,5,4,'#f8dfc4')}
+  if(o.kind==='ball'){const bx=s.ball.x,by=s.ball.y;px(bx-12,by+10,24,4,'#547b53');px(bx-12,by-12,24,24,'#32475a');px(bx-9,by-9,18,18,'#e9d9ac');px(bx-9,by-9,9,9,'#e27d67');px(bx,by,9,9,'#e27d67');px(bx+3,by-9,6,6,'#f8edca');}
   if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
 
  }
@@ -489,7 +495,7 @@ document.getElementById('chatform').addEventListener('submit',e=>{
 function render(){
  renderJournal();draw();renderDialogue();document.getElementById('petname').value=document.activeElement===document.getElementById('petname')?document.getElementById('petname').value:s.name;
  const ranked=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);
- const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher'};
+ const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher',play:'Playful'};
  document.getElementById('personality').textContent=ranked.length&&ranked[0][1]>0?'Developing personality: '+(labels[ranked[0][0]]||'Explorer')+' · preferences grow through activities':'Personality develops as your PET explores and chooses activities.';
  document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':('Alive · '+(s.task?.type==='rest'?'Resting':s.task?.type==='comfort'?'Seeking comfort':s.task?.type==='eat'?'Finding food':s.task?.type==='discover'?'Exploring':s.task?.type==='activity'?'Heading to '+(s.task.target==='reading'?'research laptop':s.task.target):'Choosing next activity'));
  const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
