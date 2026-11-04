@@ -2,11 +2,11 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PET — A small life</title>
 <style>
 :root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#304638;--text:#e8f0e9;--muted:#9bb0a0;--green:#a7dc91}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;display:block;border-radius:10px;background:#294a32}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}.dialogue{display:flex;flex-direction:column;gap:10px}.chatlog{height:220px;overflow:auto;background:#111c15;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}.bubble{max-width:88%;padding:9px 11px;border-radius:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.pet{background:#294b35;align-self:flex-start;border-bottom-left-radius:3px}.bubble.you{background:#34404a;align-self:flex-end;border-bottom-right-radius:3px}.chatmeta{font-size:10px;color:var(--muted);margin-bottom:3px}.chatform{display:flex;gap:8px}.chatform input{min-width:0;flex:1;background:#111c15;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}.chatform input:focus{outline:2px solid var(--green);outline-offset:1px}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;display:block;border-radius:4px;background:#294a32;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid #354c49}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}.dialogue{display:flex;flex-direction:column;gap:10px}.chatlog{height:220px;overflow:auto;background:#111c15;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}.bubble{max-width:88%;padding:9px 11px;border-radius:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.pet{background:#294b35;align-self:flex-start;border-bottom-left-radius:3px}.bubble.you{background:#34404a;align-self:flex-end;border-bottom-right-radius:3px}.chatmeta{font-size:10px;color:var(--muted);margin-bottom:3px}.chatform{display:flex;gap:8px}.chatform input{min-width:0;flex:1;background:#111c15;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}.chatform input:focus{outline:2px solid var(--green);outline-offset:1px}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
 </style></head><body>
-<header><div><h1>P E T</h1><small>A small life in a colourful cartoon world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
+<header><div><h1>P E T</h1><small>A tiny life in a retro handheld world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
-<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A peaceful lakeside clearing</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A peaceful lakeside clearing</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="450" height="300" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
 <section class="panel"><h2>Meet your PET</h2><form id="nameform" class="chatform" style="margin-bottom:12px"><input id="petname" maxlength="24" placeholder="Give your PET a name…" aria-label="PET name"><button type="submit">Save name</button></form><small class="muted" id="personality">Personality developing…</small></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
@@ -16,6 +16,8 @@
 </main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
 <script>
 const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+// Draw in world coordinates onto a half-resolution GBA-inspired pixel canvas.
+ctx.setTransform(.5,0,0,.5,0,0);
 const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'}];
 const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
 let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
@@ -268,18 +270,24 @@ function berryBush(x,y){
 function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
 function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
 function draw(){
- ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
+ ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
  // Quiet lakeside clearing inspired by the simplicity of classic handheld RPG lakes.
- ctx.fillStyle='#b5e779';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#9fce70';ctx.fillRect(0,0,W,H);
+ // Repeating grass tiles and tufts recall a 16-bit handheld RPG overworld.
+ for(let ty=0;ty<600;ty+=32)for(let tx=0;tx<900;tx+=32){
+  const seed=((tx/32)*19+(ty/32)*37)%11;
+  if(seed<3){ctx.fillStyle='#8bc16b';ctx.fillRect(tx+6,ty+9,5,3);ctx.fillRect(tx+14,ty+6,3,6);ctx.fillRect(tx+20,ty+15,6,3)}
+  else if(seed===5){ctx.fillStyle='#b8dc83';ctx.fillRect(tx+10,ty+12,7,4);ctx.fillRect(tx+18,ty+16,4,3)}
+ }
  // Gentle sky at the very top and a distant treeline.
- ctx.fillStyle='#a9ddf5';ctx.fillRect(0,0,W,82);
- shape([[0,75],[85,56],[160,77],[250,51],[360,75],[470,48],[590,72],[705,53],[810,75],[900,56],[900,126],[0,126]],'#66b79d',null);
+ ctx.fillStyle='#91cddd';ctx.fillRect(0,0,W,82);
+ shape([[0,75],[85,56],[160,77],[250,51],[360,75],[470,48],[590,72],[705,53],[810,75],[900,56],[900,126],[0,126]],'#579f83',null);
  // Distant hills and layered woodland silhouettes.
  shape([[0,87],[95,48],[190,84],[312,40],[432,84],[548,47],[664,83],[783,45],[900,78],[900,126],[0,126]],'#83c5a8');
  shape([[0,105],[80,77],[161,105],[253,72],[355,104],[457,77],[571,108],[684,72],[791,103],[900,80],[900,135],[0,135]],'#5ba88d');
  // A single large, calm lake in the upper half.
- shape([[95,132],[185,104],[335,116],[435,100],[578,121],[704,109],[815,145],[843,207],[811,263],[718,283],[590,270],[475,291],[348,273],[220,290],[120,263],[72,212]],'#4eabcc','#3d8e8b',5);
- shape([[115,146],[203,120],[335,130],[446,116],[570,138],[698,125],[797,157],[825,205],[793,248],[706,267],[582,255],[468,275],[345,258],[226,274],[137,248],[91,211]],'#7bd0e9',null);
+ shape([[95,132],[185,104],[335,116],[435,100],[578,121],[704,109],[815,145],[843,207],[811,263],[718,283],[590,270],[475,291],[348,273],[220,290],[120,263],[72,212]],'#468eb2','#3d8e8b',5);
+ shape([[115,146],[203,120],[335,130],[446,116],[570,138],[698,125],[797,157],[825,205],[793,248],[706,267],[582,255],[468,275],[345,258],[226,274],[137,248],[91,211]],'#70b8d4',null);
  // Small, sparse water glints rather than detailed waves.
  ctx.strokeStyle='#d6f5f5';ctx.lineWidth=3;ctx.lineCap='round';
  for(const [x,y] of [[180,180],[328,215],[490,157],[600,223],[737,183],[455,248]]){ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x+17,y);ctx.stroke()}
@@ -295,8 +303,8 @@ function draw(){
  }
  ctx.restore();
  // Shoreline and two gentle grass tones.
- shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#a8df69',null);
- shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#bde989',null);
+ shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#96c96b',null);
+ shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#a8d47c',null);
  // Soft grassy texture, pebbles and tiny flowers (deterministic placement).
  for(let i=0;i<115;i++){
   const x=(i*173+37)%W,y=316+(i*89)%277;
@@ -306,10 +314,12 @@ function draw(){
   if(i%17===0){oval(x,y-8,3,3,i%2?'#fff2bd':'#e8c1f0','#6ca65b',.6)}
  }
  // One modest winding footpath through the clearing.
- ctx.strokeStyle='#e6d39b';ctx.lineWidth=43;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.strokeStyle='#dec99a';ctx.lineWidth=43;ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(410,600);ctx.quadraticCurveTo(450,500,490,458);ctx.quadraticCurveTo(545,408,506,355);ctx.stroke();
  ctx.strokeStyle='rgba(255,246,206,.55)';ctx.lineWidth=12;ctx.stroke();
  for(let i=0;i<18;i++){const x=400+(i*37)%120,y=360+(i*43)%235;oval(x,y,2+(i%3),1.5,'rgba(143,116,76,.38)')}
+ // Pixel-tile edge accents around the path and clearing.
+ for(let i=0;i<22;i++){const x=(i*137+73)%W,y=325+(i*97)%265;ctx.fillStyle=i%2?'#659c55':'#72aa5c';ctx.fillRect(x,y,12,4);ctx.fillRect(x+4,y-4,4,4)}
  // Trees frame the clearing rather than filling the walkable space.
  [[36,169,.85,0],[80,352,.95,1],[39,540,.85,0],[165,574,.8,0],
   [847,156,.85,1],[872,344,.9,0],[838,552,.95,0],[726,568,.8,1],
