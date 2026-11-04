@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PET — A small life</title>
+<style>
+:root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#304638;--text:#e8f0e9;--muted:#9bb0a0;--green:#a7dc91}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;display:block;border-radius:10px;background:#294a32}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
+</style></head><body>
+<header><div><h1>P E T</h1><small>A small life, unfolding</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
+<main>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>Watch. Don't direct.</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's habitat"></canvas><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
+<section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
+<section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
+<section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
+</main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
+<script>
+const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'}];
+const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}]});
+let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
+let paused=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
+function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
+function step(){
+ s.tick++;s.hunger=Math.min(100,s.hunger+.65);s.energy=Math.max(0,s.energy-.28);s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
+ const score={eat:s.hunger*1.25+(s.learned.eat||0),rest:(100-s.energy)*1.2+(s.learned.rest||0),explore:s.curiosity*.65+(s.learned.explore||0)};
+ const action=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];let msg='',kind='thought';
+ if(action==='eat'){
+  const bushes=objects.filter(o=>o.kind==='berry'),t=bushes.sort((a,b)=>dist(s,a)-dist(s,b))[0];
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-38);s.learned.eat=(s.learned.eat||0)+1.8;msg='Found berries and ate. That was useful; I should remember this place.';kind='food';if(!s.discoveries.includes(t.id)){s.discoveries.push(t.id);s.knowledge++;msg='Discovery: berries are edible! I have remembered this bush.';kind='discovery'}}
+  else{move(t,2.7);msg='I am hungry. Heading towards the berry bush.'}
+ }else if(action==='rest'){
+  if(s.energy>96){s.comfort=Math.min(100,s.comfort+.5);s.learned.rest=Math.max(0,(s.learned.rest||0)-.1);msg='Resting quietly and watching the world.'}
+  else{s.energy=Math.min(100,s.energy+1.8);msg='Taking a little rest.'}
+ }else{
+  const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
+  if(unknown.length){const t=unknown.sort((a,b)=>dist(s,a)-dist(s,b))[0];if(dist(s,t)<22){s.discoveries.push(t.id);s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);s.learned.explore=(s.learned.explore||0)+2.2;const descriptions={pond:'The pond is cool water. I wonder what lives in it.',stone:'A heavy stone. It does not move easily.',flower:'A bright flower. It has an interesting smell.',tree:'A very large tree. Its shade feels pleasant.',mushroom:'A strange mushroom. I do not know if it is safe, so I will not eat it.',berry:'A bush with colourful berries. I should investigate those.'};msg='Discovery: '+descriptions[t.kind];kind='discovery'}else{move(t,2.3);msg='Something nearby is unfamiliar. I want to investigate.'}}
+  else{move(objects[Math.floor(Math.random()*objects.length)],1.8);msg='I have explored much of this place. I am wandering and revisiting familiar spots.'}
+ }
+ s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));if(kind!=='thought'||s.tick%5===0)log(kind,msg);save();render();
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);ctx.fillStyle='#294a32';ctx.fillRect(0,0,W,H);
+ for(let i=0;i<110;i++){ctx.fillStyle='rgba(190,220,160,.08)';ctx.fillRect((i*173)%W,(i*97)%H,3,3)}
+ ctx.strokeStyle='rgba(190,170,115,.22)';ctx.lineWidth=26;ctx.beginPath();ctx.moveTo(430,280);ctx.quadraticCurveTo(280,330,170,160);ctx.moveTo(440,300);ctx.quadraticCurveTo(590,390,700,430);ctx.stroke();
+ for(const o of objects){ctx.save();ctx.translate(o.x,o.y);
+ if(o.kind==='berry'){ctx.fillStyle='#315d38';ctx.beginPath();ctx.arc(0,0,19,0,7);ctx.fill();ctx.fillStyle='#b84c68';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc((i%2)*12-6,Math.floor(i/2)*10-5,4,0,7);ctx.fill()}}
+ if(o.kind==='pond'){ctx.fillStyle='#397e9b';ctx.beginPath();ctx.ellipse(0,0,42,28,-.2,0,7);ctx.fill();ctx.strokeStyle='#80c7cf';ctx.stroke()}
+ if(o.kind==='stone'){ctx.fillStyle='#89918a';ctx.beginPath();ctx.moveTo(-15,10);ctx.lineTo(-10,-10);ctx.lineTo(8,-15);ctx.lineTo(17,2);ctx.lineTo(8,13);ctx.fill()}
+ if(o.kind==='flower'){ctx.fillStyle='#e9c96e';ctx.beginPath();ctx.arc(0,0,5,0,7);ctx.fill();for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle='#d98ba8';ctx.beginPath();ctx.arc(Math.cos(a)*9,Math.sin(a)*9,5,0,7);ctx.fill()}}
+ if(o.kind==='tree'){ctx.fillStyle='#76583d';ctx.fillRect(-4,0,8,20);ctx.fillStyle='#3d7545';ctx.beginPath();ctx.arc(0,-5,22,0,7);ctx.fill()}
+ if(o.kind==='mushroom'){ctx.fillStyle='#e6d6b7';ctx.fillRect(-3,-1,6,13);ctx.fillStyle='#c75b51';ctx.beginPath();ctx.arc(0,-2,12,Math.PI,0);ctx.fill()}
+ ctx.restore();ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(o.label,o.x,o.y+34)}
+ ctx.save();ctx.translate(s.x,s.y);ctx.shadowColor='#d6f6a6';ctx.shadowBlur=18;ctx.fillStyle='#c6e79c';ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#24352a';ctx.beginPath();ctx.arc(-4,-2,2,0,7);ctx.arc(4,-2,2,0,7);ctx.fill();ctx.strokeStyle='#526e45';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,3,4,.2,Math.PI-.2);ctx.stroke();ctx.restore();
+}
+function render(){
+ draw();document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':'Alive · browser simulation';
+ const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
+ document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
+ document.getElementById('discoveries').innerHTML=s.discoveries.map(id=>'<span class="chip">'+(objects.find(o=>o.id===id)?.label||id)+'</span>').join('')||'<span class="muted">Nothing yet. The world is new.</span>';
+ document.getElementById('events').innerHTML=s.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('');
+}
+document.getElementById('pause').onclick=()=>{paused=!paused;document.getElementById('pause').textContent=paused?'Resume':'Pause';render()};
+document.getElementById('reset').onclick=()=>{if(confirm('Start a new creature? This clears this browser’s saved PET world.')){s=fresh();save();render()}};
+render();setInterval(()=>{if(!paused)step()},1000);
+</script></body></html>
