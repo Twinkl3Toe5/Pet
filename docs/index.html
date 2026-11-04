@@ -260,8 +260,8 @@ function berryBush(x,y){
  oval(x,y,29,20,'#399b5b');oval(x-14,y-8,17,15,'#56bb62');oval(x+12,y-8,19,17,'#5dbd60');
  for(let i=0;i<5;i++){const bx=x-19+(i*17)%39,by=y-13+(i*11)%21;oval(bx,by,5,5,'#f05b6d','#3a4d47',1.5)}
 }
-function dayPhase(){return (s.tick%2400)/2400}
-function timeLabel(){const h=Math.floor(dayPhase()*24);return String(h).padStart(2,'0')+':'+String(Math.floor(dayPhase()*1440)%60).padStart(2,'0')}
+function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
+function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
 function draw(){
  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
  // Quiet lakeside clearing inspired by the simplicity of classic handheld RPG lakes.
@@ -309,7 +309,7 @@ function draw(){
   ctx.fillStyle='rgba(25,49,59,.86)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-12,width,24,8);ctx.fill();
   ctx.fillStyle='#fff9e8';ctx.fillText(o.label,o.x,labelY);ctx.restore();
  }
- // Eight-minute in-world day: dawn, daylight, dusk and night.
+ // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
  const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
  const darkness=Math.pow(1-sunlight,1.5)*.68;
  if(darkness>.01){ctx.fillStyle='rgba(9,17,52,'+darkness.toFixed(3)+')';ctx.fillRect(0,0,W,H)}
