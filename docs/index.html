@@ -55,8 +55,8 @@ const researchFacts=[
  {topic:'dinosaurs',fact:'Birds are the surviving descendants of theropod dinosaurs.'}
 ];
 function step(){
- s.tick++;s.hunger=Math.min(100,s.hunger+.12);s.energy=Math.max(0,s.energy-.28);
- s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
+ s.tick++;s.hunger=Math.min(100,s.hunger+.024);s.energy=Math.max(0,s.energy-.056);
+ s.curiosity=Math.min(100,s.curiosity+.024);s.comfort=Math.max(0,s.comfort-.008);
  // Persisted activity state is initialized lazily for existing saves.
  if(!s.activities||typeof s.activities!=='object')s.activities={};
  if(!['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.activityTarget))s.activityTarget=null;
@@ -89,14 +89,14 @@ function step(){
   if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate some berries. Feeling much better!';kind='food'}
   else{move(t,4.32);msg='Feeling hungry. Heading for berries.'}
  }else if(s.energy<35){
-  s.activityTarget=null;s.energy=Math.min(100,s.energy+2.1);
-  s.comfort=Math.min(100,s.comfort+.25);
+  s.activityTarget=null;s.energy=Math.min(100,s.energy+.42);
+  s.comfort=Math.min(100,s.comfort+.05);
   msg='Taking a proper rest and recharging.';kind='rest';
  }else if(s.comfort<35){
   const t=objects.find(o=>o.id==='tree');
   s.activityTarget=null;
   if(dist(s,t)>35){move(t,3.52);msg='Looking for a peaceful spot beneath the tree.'}
-  else{s.comfort=Math.min(100,s.comfort+2.5);s.energy=Math.min(100,s.energy+.15);
+  else{s.comfort=Math.min(100,s.comfort+.5);s.energy=Math.min(100,s.energy+.03);
    msg='Enjoying the shade. This place feels safe and familiar.';kind='comfort'}
  }else if(unknown.length){
   const t=unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];s.activityTarget=null;
@@ -126,10 +126,10 @@ function step(){
   if(dist(s,t)>activity.distance){move(t,3.36);msg='Going to spend some time '+(s.activityTarget==='shade'?'under the tree':'by '+t.label.toLowerCase())+'.'}
   else{
    s.activityProgress=(s.activityProgress||0)+1;
-   s.comfort=Math.min(100,s.comfort+(activity.comfort||.1));
-   s.curiosity=Math.max(0,s.curiosity-(activity.curiosity||.7));
-   s.energy=Math.min(100,s.energy+(activity.energy||0));
-   if(s.activityProgress>=6){
+   s.comfort=Math.min(100,s.comfort+(activity.comfort||.1)*.2);
+   s.curiosity=Math.max(0,s.curiosity-(activity.curiosity||.7)*.2);
+   s.energy=Math.min(100,s.energy+(activity.energy||0)*.2);
+   if(s.activityProgress>=25){
     const count=(s.activities[s.activityTarget]||0);
     msg=activity.thoughts[count%activity.thoughts.length];kind='activity';
     if(activity.knowledge&&count%4===0){s.knowledge++;msg+=' I learned something new.'}
@@ -150,7 +150,7 @@ function step(){
   }
  }
  s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));
- if(kind!=='thought'||s.tick%5===0)log(kind,msg);
+ if(kind!=='thought'&&(kind==='learning'||kind==='discovery'||kind==='activity'||s.tick%5===0)||s.tick%25===0)log(kind,msg);
  save();render();
 }
 
@@ -375,5 +375,5 @@ function render(){
 document.getElementById('nameform').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('petname').value.trim().replace(/\s+/g,' ').slice(0,24);if(!name)return;s.name=name;save();render()});
 document.getElementById('pause').onclick=()=>{paused=!paused;document.getElementById('pause').textContent=paused?'Resume':'Pause';render()};
 document.getElementById('reset').onclick=()=>{if(confirm('Start a new creature? This clears this browser’s saved PET world.')){s=fresh();save();render()}};
-render();setInterval(()=>{if(!paused)step()},1000);
+render();setInterval(()=>{if(!paused)step()},200);
 </script></body></html>
