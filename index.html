@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PET — A tiny life</title>
+<style>
+:root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#2d4034;--text:#e8f0e9;--muted:#9bb0a0;--green:#91d5a2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}
+header{padding:22px max(20px,calc((100vw - 1200px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+h1{font-size:22px;margin:0;letter-spacing:.08em}small,.muted{color:var(--muted)}main{max-width:1200px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:#21392a;border:1px solid #3c6045}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stat{background:#111c15;border-radius:10px;padding:12px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);width:0%;transition:width .3s}
+h2{font-size:15px;margin:0 0 12px}.events{max-height:330px;overflow:auto}.event{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.event:last-child{border:0}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}
+.discoveries{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}
+footer{max-width:1200px;margin:0 auto;padding:0 20px 24px;color:var(--muted);font-size:12px}
+@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
+</style></head>
+<body>
+<header><div><h1>P E T</h1><small>A small life, unfolding</small></div><div><span style="color:var(--green)">●</span> <span id="status">Connecting…</span></div></header>
+<main>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>Watch. Don't direct.</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's 2D habitat"></canvas></section>
+<section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
+<section class="panel"><h2>What has it discovered?</h2><div class="discoveries" id="discoveries"><span class="muted">Nothing yet. The world is new.</span></div><p class="muted" style="font-size:12px;margin-bottom:0">Knowledge grows through exploration and experience.</p></section>
+<section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
+</main><footer>Milestone 1 · Rules-based autonomous simulation · State persists locally in SQLite · Refresh this page whenever you like</footer>
+<script>
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+const names={berry_bush:'Berry bush',pond:'Pond',stone:'Stone',flower:'Flower',tree:'Tree',mushroom:'Mushroom'};
+function draw(data){
+ const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#294a32';ctx.fillRect(0,0,w,h);
+ // subtle ground texture
+ for(let i=0;i<100;i++){let x=(i*173)%w,y=(i*97)%h;ctx.fillStyle='rgba(190,220,160,.08)';ctx.fillRect(x,y,3,3)}
+ // paths
+ ctx.strokeStyle='rgba(190,170,115,.22)';ctx.lineWidth=26;ctx.beginPath();ctx.moveTo(430,280);ctx.quadraticCurveTo(280,330,170,160);ctx.moveTo(440,300);ctx.quadraticCurveTo(590,390,700,430);ctx.stroke();
+ for(const o of data.objects){ctx.save();ctx.translate(o.x,o.y);
+  if(o.kind==='berry_bush'){ctx.fillStyle='#315d38';ctx.beginPath();ctx.arc(0,0,19,0,7);ctx.fill();ctx.fillStyle='#b84c68';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc((i%2)*12-6,Math.floor(i/2)*10-5,4,0,7);ctx.fill()}}
+  if(o.kind==='pond'){ctx.fillStyle='#397e9b';ctx.beginPath();ctx.ellipse(0,0,42,28,-.2,0,7);ctx.fill();ctx.strokeStyle='#80c7cf';ctx.stroke()}
+  if(o.kind==='stone'){ctx.fillStyle='#89918a';ctx.beginPath();ctx.moveTo(-15,10);ctx.lineTo(-10,-10);ctx.lineTo(8,-15);ctx.lineTo(17,2);ctx.lineTo(8,13);ctx.fill()}
+  if(o.kind==='flower'){ctx.fillStyle='#e9c96e';ctx.beginPath();ctx.arc(0,0,5,0,7);ctx.fill();for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle='#d98ba8';ctx.beginPath();ctx.arc(Math.cos(a)*9,Math.sin(a)*9,5,0,7);ctx.fill()}}
+  if(o.kind==='tree'){ctx.fillStyle='#76583d';ctx.fillRect(-4,0,8,20);ctx.fillStyle='#3d7545';ctx.beginPath();ctx.arc(0,-5,22,0,7);ctx.fill()}
+  if(o.kind==='mushroom'){ctx.fillStyle='#e6d6b7';ctx.fillRect(-3,-1,6,13);ctx.fillStyle='#c75b51';ctx.beginPath();ctx.arc(0,-2,12,Math.PI,0);ctx.fill()}
+  ctx.restore();ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(o.label,o.x,o.y+34);
+ }
+ const p=data.creature;ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#d6f6a6';ctx.shadowBlur=18;ctx.fillStyle='#c6e79c';ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#24352a';ctx.beginPath();ctx.arc(-4,-2,2,0,7);ctx.arc(4,-2,2,0,7);ctx.fill();ctx.strokeStyle='#526e45';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,3,4,.2,Math.PI-.2);ctx.stroke();ctx.restore();
+}
+const metrics=[['Energy','energy'],['Hunger','hunger'],['Curiosity','curiosity'],['Comfort','comfort']];
+function render(d){
+ document.getElementById('status').textContent='Alive · updating every second';document.getElementById('tick').textContent='Tick '+d.creature.tick;
+ draw(d);document.getElementById('stats').innerHTML=metrics.map(([label,key])=>{let v=Math.round(d.creature[key]);return '<div class="stat"><div class="stathead"><span>'+label+'</span><b>'+v+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>'}).join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+d.creature.knowledge+'</b></div><small>Things understood</small></div><div class="stat"><div class="stathead"><span>World age</span><b>'+d.creature.tick+'s</b></div><small>Simulation ticks</small></div>';
+ const disc=d.discoveries.map(id=>{let o=d.objects.find(x=>x.id===id);return '<span class="chip">'+(o?o.label:id)+'</span>'}).join('');document.getElementById('discoveries').innerHTML=disc||'<span class="muted">Nothing yet. The world is new.</span>';
+ document.getElementById('events').innerHTML=d.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('')||'<span class="muted">Waiting for experiences…</span>';
+}
+async function refresh(){try{let r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('API unavailable');render(await r.json())}catch(e){document.getElementById('status').textContent='Waiting for simulation…'}}
+refresh();setInterval(refresh,1000);
+</script></body></html>
