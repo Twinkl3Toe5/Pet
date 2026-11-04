@@ -16,7 +16,7 @@
 </main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
 <script>
 const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'}];
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'}];
 const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
 let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
 if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];
@@ -63,7 +63,8 @@ function step(){
  if(s.discoveryTarget&&!objects.some(o=>o.id===s.discoveryTarget&&!s.discoveries.includes(o.id)))s.discoveryTarget=null;
  if(s.activityTarget&&s.activityProgress==null)s.activityProgress=0;
  let msg='',kind='thought';
- const bushes=objects.filter(o=>o.kind==='berry');
+ const foods=objects.filter(o=>['berry','apple','carrot','nuts'].includes(o.kind));
+ const pickFood=()=>foods.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
  const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
  const choice=()=>{
   // Avoid repeating the same activity indefinitely; revisit places with new purposes.
@@ -90,23 +91,24 @@ function step(){
  if(!s.task || typeof s.task!=='object')s.task=null;
  if(s.task && !['eat','rest','comfort','discover','activity'].includes(s.task.type))s.task=null;
  if(s.task?.type==='discover' && (!objects.some(o=>o.id===s.task.target)||s.discoveries.includes(s.task.target)))s.task=null;
+ if(s.task?.type==='eat' && !objects.some(o=>o.id===s.task.target&&['berry','apple','carrot','nuts'].includes(o.kind)))s.task=null;
  if(s.task?.type==='activity' && !['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.task.target))s.task=null;
  if(!s.task){
-  if(s.hunger>=65)s.task={type:'eat',target:bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
+  if(s.hunger>=65)s.task={type:'eat',target:pickFood().id};
   else if(s.energy<35)s.task={type:'rest'};
   else if(s.comfort<35)s.task={type:'comfort',target:'tree'};
   else if(s.discoveryTarget||unknown.length)s.task={type:'discover',target:s.discoveryTarget||unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
   else{s.task={type:'activity',target:s.activityTarget||choice().id};s.activityTarget=s.task.target;s.activityProgress=0}
-  const destinations={eat:'the berry bush',rest:'rest',comfort:'the old tree',discover:objects.find(o=>o.id===s.task.target)?.label||'something new',activity:s.task.target==='reading'?'the research laptop':s.task.target};
+  const destinations={eat:objects.find(o=>o.id===s.task.target)?.label||'food',rest:'rest',comfort:'the old tree',discover:objects.find(o=>o.id===s.task.target)?.label||'something new',activity:s.task.target==='reading'?'the research laptop':s.task.target};
   msg='My plan: '+(s.task.type==='rest'?'take a rest':'go to '+destinations[s.task.type]+'.');kind='plan';
  }
  // Emergency interruption only; never switch between ordinary needs mid-trip.
- if(s.task.type!=='eat'&&s.hunger>=95){s.task={type:'eat',target:bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need food first.';kind='plan'}
+ if(s.task.type!=='eat'&&s.hunger>=95){s.task={type:'eat',target:pickFood().id};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need food first.';kind='plan'}
  else if(s.task.type!=='rest'&&s.energy<=5){s.task={type:'rest'};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need to rest first.';kind='plan'}
  if(s.task.type==='eat'){
-  const t=objects.find(o=>o.id===s.task.target)||bushes[0];
-  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Reached the berry bush and ate.';kind='food';s.task=null}
-  else{move(t,4.32);if(kind!=='plan')msg='Walking to the berry bush.'}
+  const t=objects.find(o=>o.id===s.task.target&&foods.includes(o))||pickFood();
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate '+({berry:'some berries',apple:'an apple',carrot:'fresh carrots',nuts:'some hazelnuts'}[t.kind]||'some food')+' at the '+t.label.toLowerCase()+'.';kind='food';s.task=null}
+  else{move(t,4.32);if(kind!=='plan')msg='Walking to '+t.label.toLowerCase()+'.'}
  }else if(s.task.type==='rest'){
   s.energy=Math.min(100,s.energy+1.8);s.comfort=Math.min(100,s.comfort+.12);
   if(s.energy>=65){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
@@ -124,7 +126,7 @@ function step(){
   if(dist(s,t)<22){
    s.discoveries.push(t.id);s.discoveryTarget=null;s.task=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
-   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.'};
+   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.',apple:'An apple tree with edible fruit.',carrot:'A patch of fresh carrots.',nuts:'A hazelnut bush with nutritious nuts.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
   }else{move(t,3.68);msg='Something unfamiliar caught my attention.'}
  }else if(s.task.type==='activity'){
@@ -292,6 +294,9 @@ function draw(){
  // Existing interactable objects retain their IDs and positions.
  for(const o of objects){
   if(o.kind==='berry')berryBush(o.x,o.y);
+  if(o.kind==='apple'){cartoonTree(o.x,o.y,.72,0);for(const [dx,dy] of [[-12,-25],[11,-34],[0,-45]])oval(o.x+dx,o.y+dy,5,5,'#e74f48','#843c37',1)}
+  if(o.kind==='carrot'){for(const dx of [-15,0,15]){oval(o.x+dx,o.y+7,6,10,'#ed8c38','#b65d27',1);ctx.strokeStyle='#3d9858';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x+dx,o.y+2);ctx.lineTo(o.x+dx-4,o.y-9);ctx.moveTo(o.x+dx,o.y+2);ctx.lineTo(o.x+dx+5,o.y-8);ctx.stroke()}}
+  if(o.kind==='nuts'){berryBush(o.x,o.y);for(const dx of [-12,1,13])oval(o.x+dx,o.y+5,5,6,'#b9814d','#775337',1)}
   if(o.kind==='pond'){oval(o.x,o.y,23,11,'#6ac9eb','#408eab',2)}
   if(o.kind==='stone')oval(o.x,o.y,20,14,'#9fa4ba');
   if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let angle=i*Math.PI*2/5;oval(o.x+Math.cos(angle)*8,o.y+Math.sin(angle)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
