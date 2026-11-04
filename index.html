@@ -1,56 +1,471 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PET — A tiny life</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PET — A small life</title>
 <style>
-:root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#2d4034;--text:#e8f0e9;--muted:#9bb0a0;--green:#91d5a2}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}
-header{padding:22px max(20px,calc((100vw - 1200px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-h1{font-size:22px;margin:0;letter-spacing:.08em}small,.muted{color:var(--muted)}main{max-width:1200px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:18px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-canvas{display:block;width:100%;height:auto;border-radius:10px;background:#21392a;border:1px solid #3c6045}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stat{background:#111c15;border-radius:10px;padding:12px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);width:0%;transition:width .3s}
-h2{font-size:15px;margin:0 0 12px}.events{max-height:330px;overflow:auto}.event{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.event:last-child{border:0}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}
-.discoveries{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}
-footer{max-width:1200px;margin:0 auto;padding:0 20px 24px;color:var(--muted);font-size:12px}
-@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
-</style></head>
-<body>
-<header><div><h1>P E T</h1><small>A small life, unfolding</small></div><div><span style="color:var(--green)">●</span> <span id="status">Connecting…</span></div></header>
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap");
+:root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#304638;--text:#e8f0e9;--muted:#9bb0a0;--green:#a7dc91}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;aspect-ratio:3/2;display:block;border-radius:4px;background:#294a32;image-rendering:pixelated;image-rendering:crisp-edges}.worldstage{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:4px}.worldstage canvas{width:100%;height:100%}.worldlabels{position:absolute;inset:0;pointer-events:none;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.worldlabel[hidden]{display:none!important}.worldlabel{position:absolute;left:12px!important;top:auto!important;bottom:12px;transform:none;background:#f8f7f2;color:#555965;border:2px solid #c8c7c1;box-shadow:3px 3px 0 #85817b;padding:7px 12px;font:600 clamp(22px,3.5vw,32px)/1.15 "Pixelify Sans",monospace;letter-spacing:.02em;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;z-index:2;text-shadow:1px 2px 0 #d8c3a9;font-smooth:never;-webkit-font-smoothing:none}.worldclock{position:absolute;left:12px;top:12px;background:#f8f7f2;color:#555965;border:2px solid #c8c7c1;box-shadow:3px 3px 0 #85817b;padding:5px 10px;font:600 clamp(18px,2.5vw,24px)/1.15 "Pixelify Sans",monospace;z-index:3;pointer-events:none;text-shadow:1px 2px 0 #d8c3a9}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}.dialogue{display:flex;flex-direction:column;gap:10px}.chatlog{height:220px;overflow:auto;background:#111c15;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}.bubble{max-width:88%;padding:9px 11px;border-radius:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.pet{background:#294b35;align-self:flex-start;border-bottom-left-radius:3px}.bubble.you{background:#34404a;align-self:flex-end;border-bottom-right-radius:3px}.chatmeta{font-size:10px;color:var(--muted);margin-bottom:3px}.chatform{display:flex;gap:8px}.chatform input{min-width:0;flex:1;background:#111c15;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}.chatform input:focus{outline:2px solid var(--green);outline-offset:1px}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
+</style></head><body>
+<header><div><h1>P E T</h1><small>A tiny life in a pixel-art lakeside world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
-<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>Watch. Don't direct.</small></div><small id="tick">Tick 0</small></div><canvas id="world" width="900" height="600" aria-label="PET's 2D habitat"></canvas></section>
+<section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A peaceful lakeside clearing</small></div><small id="tick">Tick 0</small></div><div class="worldstage"><canvas id="world" width="450" height="300" aria-label="PET's habitat"></canvas><div class="worldlabels" id="worldlabels" aria-hidden="true"></div><div class="worldclock" id="worldclock"></div></div><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
+<section class="panel"><h2>Meet your PET</h2><form id="nameform" class="chatform" style="margin-bottom:12px"><input id="petname" maxlength="24" placeholder="Give your PET a name…" aria-label="PET name"><button type="submit">Save name</button></form><small class="muted" id="personality">Personality developing…</small></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
-<section class="panel"><h2>What has it discovered?</h2><div class="discoveries" id="discoveries"><span class="muted">Nothing yet. The world is new.</span></div><p class="muted" style="font-size:12px;margin-bottom:0">Knowledge grows through exploration and experience.</p></section>
+<section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
+<section class="panel"><h2>What PET has learned</h2><div class="chips" id="facts">No research facts yet.</div><small class="muted">PET remembers facts after reading the research laptop.</small></section>
+<section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
 <section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
-</main><footer>Milestone 1 · Rules-based autonomous simulation · State persists locally in SQLite · Refresh this page whenever you like</footer>
+</main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
 <script>
-const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const names={berry_bush:'Berry bush',pond:'Pond',stone:'Stone',flower:'Flower',tree:'Tree',mushroom:'Mushroom'};
-function draw(data){
- const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#294a32';ctx.fillRect(0,0,w,h);
- // subtle ground texture
- for(let i=0;i<100;i++){let x=(i*173)%w,y=(i*97)%h;ctx.fillStyle='rgba(190,220,160,.08)';ctx.fillRect(x,y,3,3)}
- // paths
- ctx.strokeStyle='rgba(190,170,115,.22)';ctx.lineWidth=26;ctx.beginPath();ctx.moveTo(430,280);ctx.quadraticCurveTo(280,330,170,160);ctx.moveTo(440,300);ctx.quadraticCurveTo(590,390,700,430);ctx.stroke();
- for(const o of data.objects){ctx.save();ctx.translate(o.x,o.y);
-  if(o.kind==='berry_bush'){ctx.fillStyle='#315d38';ctx.beginPath();ctx.arc(0,0,19,0,7);ctx.fill();ctx.fillStyle='#b84c68';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc((i%2)*12-6,Math.floor(i/2)*10-5,4,0,7);ctx.fill()}}
-  if(o.kind==='pond'){ctx.fillStyle='#397e9b';ctx.beginPath();ctx.ellipse(0,0,42,28,-.2,0,7);ctx.fill();ctx.strokeStyle='#80c7cf';ctx.stroke()}
-  if(o.kind==='stone'){ctx.fillStyle='#89918a';ctx.beginPath();ctx.moveTo(-15,10);ctx.lineTo(-10,-10);ctx.lineTo(8,-15);ctx.lineTo(17,2);ctx.lineTo(8,13);ctx.fill()}
-  if(o.kind==='flower'){ctx.fillStyle='#e9c96e';ctx.beginPath();ctx.arc(0,0,5,0,7);ctx.fill();for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle='#d98ba8';ctx.beginPath();ctx.arc(Math.cos(a)*9,Math.sin(a)*9,5,0,7);ctx.fill()}}
-  if(o.kind==='tree'){ctx.fillStyle='#76583d';ctx.fillRect(-4,0,8,20);ctx.fillStyle='#3d7545';ctx.beginPath();ctx.arc(0,-5,22,0,7);ctx.fill()}
-  if(o.kind==='mushroom'){ctx.fillStyle='#e6d6b7';ctx.fillRect(-3,-1,6,13);ctx.fillStyle='#c75b51';ctx.beginPath();ctx.arc(0,-2,12,Math.PI,0);ctx.fill()}
-  ctx.restore();ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(o.label,o.x,o.y+34);
+const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+// Render to a genuinely low-resolution pixel buffer, then upscale with nearest-neighbour.
+// All AI and collision coordinates remain in the original 900 x 600 world.
+ctx.setTransform(.5,0,0,.5,0,0);
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'}];
+const worldlabels=document.getElementById('worldlabels');
+for(const o of objects){const el=document.createElement('span');el.className='worldlabel';el.textContent=o.label;el.dataset.objectId=o.id;el.hidden=true;worldlabels.appendChild(el)}
+const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
+let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
+if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];
+if(typeof s.name!=='string')s.name='PET';
+if(!s.personality||typeof s.personality!=='object')s.personality={};
+if(!Array.isArray(s.facts))s.facts=[];
+let paused=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
+function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
+const researchFacts=[
+ {topic:'jellyfish',fact:'Jellyfish have no brain, heart or bones.'},
+ {topic:'jellyfish',fact:'Some jellyfish can glow with bioluminescence.'},
+ {topic:'octopuses',fact:'An octopus has three hearts.'},
+ {topic:'bees',fact:'Bees communicate the location of food with a waggle dance.'},
+ {topic:'trees',fact:'Trees move water upward through tiny tubes called xylem.'},
+ {topic:'frogs',fact:'Many frogs absorb water through their skin.'},
+ {topic:'mushrooms',fact:'Mushrooms are fungi, not plants.'},
+ {topic:'stars',fact:'The Sun is a star, and its light takes about eight minutes to reach Earth.'},
+ {topic:'butterflies',fact:'Butterflies taste with sensors on their feet.'},
+ {topic:'lakes',fact:'Lakes can form when glaciers carve depressions in the ground.'},
+ {topic:'otters',fact:'Sea otters sometimes use rocks to open shellfish.'},
+ {topic:'birds',fact:'Some migrating birds navigate using Earth’s magnetic field.'},
+ {topic:'computers',fact:'Computers use binary digits, called bits, to represent information.'},
+ {topic:'robots',fact:'Robots use sensors to gather information about their surroundings.'},
+ {topic:'music',fact:'Sound is made by vibrations travelling through a medium.'},
+ {topic:'history',fact:'The ancient Romans built roads across much of Europe.'},
+ {topic:'geography',fact:'The Pacific Ocean is the largest ocean on Earth.'},
+ {topic:'mathematics',fact:'Prime numbers have exactly two positive divisors.'},
+ {topic:'space',fact:'Saturn has rings made mostly of ice particles and rocky debris.'},
+ {topic:'engineering',fact:'Bridges can distribute weight using arches, beams or cables.'},
+ {topic:'language',fact:'Languages evolve as people use and change them over generations.'},
+ {topic:'art',fact:'Artists can create depth using perspective and overlapping shapes.'},
+ {topic:'weather',fact:'Rainbows appear when light is refracted and reflected inside water droplets.'},
+ {topic:'dinosaurs',fact:'Birds are the surviving descendants of theropod dinosaurs.'}
+];
+function step(){
+ s.tick++;s.hunger=Math.min(100,s.hunger+.024);s.energy=Math.max(0,s.energy-.056);
+ s.curiosity=Math.min(100,s.curiosity+.024);s.comfort=Math.max(0,s.comfort-.008);
+ // Persisted activity state is initialized lazily for existing saves.
+ if(!s.activities||typeof s.activities!=='object')s.activities={};
+ if(!['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.activityTarget))s.activityTarget=null;
+ if(s.discoveryTarget&&!objects.some(o=>o.id===s.discoveryTarget&&!s.discoveries.includes(o.id)))s.discoveryTarget=null;
+ if(s.activityTarget&&s.activityProgress==null)s.activityProgress=0;
+ let msg='',kind='thought';
+ const foods=objects.filter(o=>['berry','apple','carrot','nuts'].includes(o.kind));
+ const pickFood=()=>foods.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
+ const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
+ const choice=()=>{
+  // Avoid repeating the same activity indefinitely; revisit places with new purposes.
+  const options=[
+   {id:'lake',object:'pond',name:'watching ripples on the lake'},
+   {id:'shade',object:'tree',name:'relaxing under the old tree'},
+   {id:'flowers',object:'flower',name:'checking on the wildflower'},
+   {id:'stones',object:'stone',name:'examining the strange stone'},
+   {id:'mushrooms',object:'mushroom',name:'studying the mushroom'},
+   {id:'berries',object:'berry2',name:'checking whether the berries have grown'},
+   {id:'shore',object:'pond',name:'looking for movement in the water'},
+   {id:'reading',object:'book',name:'researching whatever interests me'}
+  ];
+  const sorted=options.map(o=>({...o,last:s.activities[o.id]||-9999,affinity:s.personality[o.id]||0}))
+   .sort((a,b)=>a.last-b.last);
+  const candidates=sorted.slice(0,Math.min(4,sorted.length));
+  const weights=candidates.map(o=>1+Math.max(0,o.affinity)*.4),total=weights.reduce((a,b)=>a+b,0);
+  let roll=Math.random()*total;
+  for(let i=0;i<candidates.length;i++){roll-=weights[i];if(roll<=0)return candidates[i]}
+  return candidates[candidates.length-1];
+ };
+ // Persist the current intention, including food and comfort trips.
+ // A task is only released on arrival/completion, not on the next tick.
+ if(!s.task || typeof s.task!=='object')s.task=null;
+ if(s.task && !['eat','rest','comfort','discover','activity'].includes(s.task.type))s.task=null;
+ if(s.task?.type==='discover' && (!objects.some(o=>o.id===s.task.target)||s.discoveries.includes(s.task.target)))s.task=null;
+ if(s.task?.type==='eat' && !objects.some(o=>o.id===s.task.target&&['berry','apple','carrot','nuts'].includes(o.kind)))s.task=null;
+ if(s.task?.type==='activity' && !['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.task.target))s.task=null;
+ if(!s.task){
+  if(s.hunger>=65)s.task={type:'eat',target:pickFood().id};
+  else if(s.energy<35)s.task={type:'rest'};
+  else if(s.comfort<35)s.task={type:'comfort',target:'tree'};
+  else if(s.discoveryTarget||unknown.length)s.task={type:'discover',target:s.discoveryTarget||unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
+  else{s.task={type:'activity',target:s.activityTarget||choice().id};s.activityTarget=s.task.target;s.activityProgress=0}
+  const destinations={eat:objects.find(o=>o.id===s.task.target)?.label||'food',rest:'rest',comfort:'the old tree',discover:objects.find(o=>o.id===s.task.target)?.label||'something new',activity:s.task.target==='reading'?'the research laptop':s.task.target};
+  msg='My plan: '+(s.task.type==='rest'?'take a rest':'go to '+destinations[s.task.type]+'.');kind='plan';
  }
- const p=data.creature;ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#d6f6a6';ctx.shadowBlur=18;ctx.fillStyle='#c6e79c';ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#24352a';ctx.beginPath();ctx.arc(-4,-2,2,0,7);ctx.arc(4,-2,2,0,7);ctx.fill();ctx.strokeStyle='#526e45';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,3,4,.2,Math.PI-.2);ctx.stroke();ctx.restore();
+ // Emergency interruption only; never switch between ordinary needs mid-trip.
+ if(s.task.type!=='eat'&&s.hunger>=95){s.task={type:'eat',target:pickFood().id};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need food first.';kind='plan'}
+ else if(s.task.type!=='rest'&&s.energy<=5){s.task={type:'rest'};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need to rest first.';kind='plan'}
+ if(s.task.type==='eat'){
+  const t=objects.find(o=>o.id===s.task.target&&foods.includes(o))||pickFood();
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate '+({berry:'some berries',apple:'an apple',carrot:'fresh carrots',nuts:'some hazelnuts'}[t.kind]||'some food')+' at the '+t.label.toLowerCase()+'.';kind='food';s.task=null}
+  else{move(t,4.32);if(kind!=='plan')msg='Walking to '+t.label.toLowerCase()+'.'}
+ }else if(s.task.type==='rest'){
+  s.energy=Math.min(100,s.energy+1.8);s.comfort=Math.min(100,s.comfort+.12);
+  if(s.energy>=65){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
+  else if(kind!=='plan')msg='Resting and recharging.';
+ }else if(s.task.type==='comfort'){
+  const t=objects.find(o=>o.id==='tree');
+  if(dist(s,t)>35){move(t,3.52);if(kind!=='plan')msg='Walking to the old tree.'}
+  else{s.comfort=Math.min(100,s.comfort+1.5);s.energy=Math.min(100,s.energy+.03);
+   if(s.comfort>=65){msg='Finished relaxing under the tree.';kind='activity';s.task=null}
+   else if(kind!=='plan')msg='Relaxing under the tree.'}
+ }else if(s.task.type==='discover'){
+  s.discoveryTarget=s.task.target;
+
+  const t=objects.find(o=>o.id===s.discoveryTarget);s.activityTarget=null;
+  if(dist(s,t)<22){
+   s.discoveries.push(t.id);s.discoveryTarget=null;s.task=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
+   s.learned.explore=(s.learned.explore||0)+2.2;
+   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.',apple:'An apple tree with edible fruit.',carrot:'A patch of fresh carrots.',nuts:'A hazelnut bush with nutritious nuts.'};
+   msg='Discovery: '+descriptions[t.kind];kind='discovery';
+  }else{move(t,3.68);msg='Something unfamiliar caught my attention.'}
+ }else if(s.task.type==='activity'){
+  s.activityTarget=s.task.target;
+  const activities={
+   lake:{object:'pond',distance:60,comfort:.65,curiosity:1.3,thoughts:['The water is making new patterns today.','I wonder what is beneath the surface.','Watching the reflections makes me feel calm.']},
+   shade:{object:'tree',distance:32,comfort:2.4,energy:.3,thoughts:['This is a lovely place to unwind.','I think this tree might be my favourite resting spot.','The shade feels wonderful.']},
+   flowers:{object:'flower',distance:27,comfort:1,curiosity:2,thoughts:['I wonder if this flower has changed since last time.','A tiny insect visited the flower!','The petals are brighter than I remembered.']},
+   stones:{object:'stone',distance:29,curiosity:2,knowledge:true,thoughts:['I noticed a new pattern on the stone.','I wonder how old this stone is.','The stone is warmer on one side.']},
+   mushrooms:{object:'mushroom',distance:28,curiosity:2,thoughts:['I should observe this mushroom, not eat it.','The mushroom seems a little different today.','Perhaps it grows after rain.']},
+   berries:{object:'berry2',distance:29,comfort:.6,thoughts:['I should remember where the best berries grow.','The bush looks healthy.','Maybe the berries will ripen soon.']},
+   shore:{object:'pond',distance:65,comfort:1,curiosity:1.5,thoughts:['Was that a fish?','There are little ripples near the shore.','I could sit here and listen to the lake.']},
+   reading:{object:'book',distance:28,curiosity:3,energy:-.4,thoughts:['I wonder what I can learn next.','There are so many subjects to investigate.']}
+  };
+  const activity=activities[s.activityTarget]||activities.lake;
+  const t=objects.find(o=>o.id===activity.object);
+  if(dist(s,t)>activity.distance){move(t,3.36);if(kind!=='plan')msg='On my way to '+t.label.toLowerCase()+'.'}
+  else{
+   s.activityProgress=(s.activityProgress||0)+1;
+   s.comfort=Math.min(100,s.comfort+(activity.comfort||.1)*.2);
+   s.curiosity=Math.max(0,s.curiosity-(activity.curiosity||.7)*.2);
+   s.energy=Math.min(100,s.energy+(activity.energy||0)*.2);
+   if(s.activityProgress>=25){
+    const count=(s.activities[s.activityTarget]||0);
+    msg=activity.thoughts[count%activity.thoughts.length];kind='activity';
+    if(activity.knowledge&&count%4===0){s.knowledge++;msg+=' I learned something new.'}
+    if(s.activityTarget==='reading'){
+     const unread=researchFacts.filter(f=>!s.facts.some(k=>k.fact===f.fact));
+     const interests={lake:['lakes','jellyfish','frogs','weather'],shore:['jellyfish','octopuses','lakes'],flowers:['bees','butterflies','art'],shade:['trees','birds','weather'],stones:['geography','engineering','history'],mushrooms:['mushrooms','biology'],berries:['bees','trees'],reading:['computers','robots','space','mathematics']};
+     const favorite=Object.entries(s.personality).sort((a,b)=>b[1]-a[1])[0]?.[0]||'reading';
+     const preferred=unread.filter(f=>(interests[favorite]||[]).includes(f.topic));
+     const pool=preferred.length&&Math.random()<.65?preferred:unread;
+     if(pool.length){const fact=pool[Math.floor(Math.random()*pool.length)];s.facts.push(fact);s.knowledge++;msg='I researched '+fact.topic+'! '+fact.fact;kind='learning'}
+     else{const fact=researchFacts[Math.floor(Math.random()*researchFacts.length)];msg='I remember learning that '+fact.fact;kind='learning'}
+    }
+    // Each completed activity gradually shapes an individual preference.
+    s.personality[s.activityTarget]=Math.min(20,(s.personality[s.activityTarget]||0)+.45);
+    s.activities[s.activityTarget]=s.tick;
+    s.activityTarget=null;s.activityProgress=0;s.task=null;
+   }else{msg='Spending a little time here.'}
+  }
+ }
+ s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));
+ // The log is a journal of completed actions, not a running travel commentary.
+ if(['learning','discovery','activity','food'].includes(kind))log(kind,msg);
+ save();render();
 }
-const metrics=[['Energy','energy'],['Hunger','hunger'],['Curiosity','curiosity'],['Comfort','comfort']];
-function render(d){
- document.getElementById('status').textContent='Alive · updating every second';document.getElementById('tick').textContent='Tick '+d.creature.tick;
- draw(d);document.getElementById('stats').innerHTML=metrics.map(([label,key])=>{let v=Math.round(d.creature[key]);return '<div class="stat"><div class="stathead"><span>'+label+'</span><b>'+v+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>'}).join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+d.creature.knowledge+'</b></div><small>Things understood</small></div><div class="stat"><div class="stathead"><span>World age</span><b>'+d.creature.tick+'s</b></div><small>Simulation ticks</small></div>';
- const disc=d.discoveries.map(id=>{let o=d.objects.find(x=>x.id===id);return '<span class="chip">'+(o?o.label:id)+'</span>'}).join('');document.getElementById('discoveries').innerHTML=disc||'<span class="muted">Nothing yet. The world is new.</span>';
- document.getElementById('events').innerHTML=d.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('')||'<span class="muted">Waiting for experiences…</span>';
+
+const scenery=[
+ [40,92,1.1],[116,65,1],[204,82,.8],[275,55,1.1],[358,74,.8],[548,62,1],[614,82,.85],[785,88,1.1],[856,115,.9],
+ [56,280,.85],[125,340,1.05],[220,365,.85],[585,405,.95],[795,330,1.05],[850,490,.85],[82,545,.9],[390,535,.85]
+];
+function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
+// Tree silhouettes based on the supplied retro sprite-sheet reference.
+function tree(x,y,size=1,variant=0){
+ ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(size,size);
+ const v=((variant%5)+5)%5;
+ // Deliberately hard-edged, low-resolution pixel shapes: no canvas smoothing.
+ ctx.fillStyle='#53392e';ctx.fillRect(-5,-3,10,34);
+ ctx.fillStyle='#9d6b40';ctx.fillRect(-3,0,3,28);
+ if(v===4){
+   // Leafless winter tree, with crooked branches.
+   const branches=[[0,2,-17,-17],[-9,-10,-22,-31],[0,-9,15,-32],[8,-17,25,-21],[2,-23,-5,-45],[-14,-20,-26,-17],[13,-28,21,-43]];
+   ctx.strokeStyle='#533b33';ctx.lineWidth=5;ctx.lineCap='square';
+   for(const [x1,y1,x2,y2] of branches){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+   ctx.strokeStyle='#ae8062';ctx.lineWidth=2;
+   for(const [x1,y1,x2,y2] of branches.slice(0,4)){ctx.beginPath();ctx.moveTo(x1+1,y1);ctx.lineTo(x2+1,y2);ctx.stroke()}
+ }else if(v===3){
+   // Layered fir, bright lime highlights and dark blue-green shadow.
+   for(let i=0;i<5;i++){
+     const yy=-56+i*12,half=9+i*6;
+     polygon([[-half,yy+17],[0,yy-9],[half,yy+17]],'#1d6256');
+     polygon([[-half+4,yy+10],[0,yy-8],[half-7,yy+10]],i%2?'#6dbb55':'#87cc58');
+     ctx.fillStyle='#b7dc67';ctx.fillRect(-3,yy+2,6,3);
+     ctx.fillStyle='#328b80';ctx.fillRect(half-9,yy+12,6,4);
+   }
+ }else{
+   // Rounded, irregular broadleaf crowns in three reference-inspired shades.
+   const palettes=[
+     ['#215d56','#50aa70','#9fd66d','#d5e67d'],
+     ['#246d61','#6fbe63','#b8d866','#e4e982'],
+     ['#357c5d','#92c65c','#c6da69','#e8e68b']
+   ],p=palettes[v];
+   polygon([[-31,-20],[-35,-34],[-26,-45],[-18,-49],[-12,-59],[4,-63],[15,-56],[25,-54],[32,-41],[34,-27],[27,-14],[11,-9],[-5,-12],[-18,-9]],p[0]);
+   polygon([[-31,-32],[-25,-47],[-12,-52],[-4,-61],[12,-58],[23,-48],[30,-35],[23,-21],[10,-16],[-5,-20],[-19,-16]],p[1]);
+   polygon([[-25,-38],[-17,-51],[-4,-55],[7,-59],[17,-51],[23,-41],[17,-30],[5,-29],[-6,-23],[-18,-29]],p[2]);
+   polygon([[-19,-44],[-8,-54],[4,-56],[14,-49],[10,-38],[-2,-36],[-11,-31]],p[3]);
+   ctx.fillStyle=p[0];ctx.fillRect(-30,-25,8,6);ctx.fillRect(19,-17,8,6);
+   ctx.fillStyle=p[3];ctx.fillRect(-21,-47,8,5);ctx.fillRect(7,-54,8,5);
+   ctx.fillStyle=p[1];ctx.fillRect(13,-28,9,6);ctx.fillRect(-12,-18,7,5);
+ }
+ ctx.restore();
 }
-async function refresh(){try{let r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('API unavailable');render(await r.json())}catch(e){document.getElementById('status').textContent='Waiting for simulation…'}}
-refresh();setInterval(refresh,1000);
+function pine(x,y,size=1){tree(x,y,size,3)}
+function tileBush(x,y){
+ ctx.fillStyle='#163f33';ctx.fillRect(x-20,y-12,40,27);
+ for(let i=0;i<5;i++){let xx=x-15+i*8;polygon([[xx-5,y-3],[xx,y-16-(i%2)*4],[xx+7,y-2],[xx+4,y+7]],i%2?'#2e8455':'#4da76a')}
+}
+
+// Scanline polygon rasterizer: stepped, grid-aligned silhouettes instead of vector edges.
+function shape(points,fill,stroke=null,width=0){
+ const grid=4,ys=points.map(p=>p[1]),lo=Math.floor(Math.min(...ys)/grid)*grid,hi=Math.ceil(Math.max(...ys)/grid)*grid;
+ const paint=(color,inset=0)=>{
+  ctx.fillStyle=color;
+  for(let y=lo;y<hi;y+=grid){
+   const crossings=[];
+   for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    if((a[1]<=y+2&&b[1]>y+2)||(b[1]<=y+2&&a[1]>y+2))
+     crossings.push(a[0]+(y+2-a[1])*(b[0]-a[0])/(b[1]-a[1]));
+   }
+   crossings.sort((a,b)=>a-b);
+   for(let i=0;i+1<crossings.length;i+=2){
+    const x=Math.ceil((crossings[i]+inset)/grid)*grid,ex=Math.floor((crossings[i+1]-inset)/grid)*grid;
+    if(ex>x)ctx.fillRect(x,y,ex-x,grid);
+   }
+  }
+ };
+ if(stroke){paint(stroke);paint(fill,Math.max(2,width))}else paint(fill);
+}
+function oval(x,y,rx,ry,fill,stroke='#26344d',width=3){
+ ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
+ if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}
+}
+function cloud(x,y,z=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+ oval(0,0,51,13,'#fffdf5');oval(-26,-9,23,19,'#fffdf5');oval(5,-17,31,25,'#fffdf5');oval(36,-5,21,17,'#fffdf5');
+ ctx.restore();
+}
+function cartoonTree(x,y,z=1,kind=0){
+ ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+ oval(2,22,39,10,'rgba(34,74,48,.17)');
+ // Warm bark, branches and irregular foliage with depth and dappled light.
+ ctx.fillStyle='#79523d';ctx.strokeStyle='#4e463d';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(-10,24);ctx.lineTo(-7,-35);ctx.lineTo(-22,-53);ctx.lineTo(-18,-59);ctx.lineTo(-3,-45);ctx.lineTo(9,-65);ctx.lineTo(15,-61);ctx.lineTo(8,-32);ctx.lineTo(11,24);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.strokeStyle='#ad7951';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-3,16);ctx.lineTo(-2,-25);ctx.stroke();
+ const canopy=kind===1?[[0,-79,27,31],[-19,-50,24,27],[18,-49,23,27],[0,-40,32,25]]:[[0,-70,37,29],[-29,-51,29,28],[27,-52,29,28],[-13,-35,33,24],[20,-32,28,22]];
+ for(const [cx,cy,rx,ry] of canopy)oval(cx+2,cy+5,rx+2,ry+2,'#3d7654');
+ for(const [cx,cy,rx,ry] of canopy)oval(cx,cy,rx,ry,kind===1?'#397e68':'#4d9460');
+ for(const [cx,cy,rx,ry] of canopy){oval(cx-5,cy-6,rx*.74,ry*.68,kind===1?'#65ae81':'#76bd74');oval(cx-11,cy-12,rx*.35,ry*.23,kind===1?'#a1d6a1':'#b8dc86')}
+ for(let i=0;i<13;i++){const px=((i*29)%65)-32,py=-83+((i*17)%60);oval(px,py,2.4,1.5,i%2?'#b2d98a':'#376f53')}
+ ctx.restore();
+}
+function berryBush(x,y){
+ oval(x,y+13,32,8,'rgba(35,74,47,.17)');
+ for(const [dx,dy,rx,ry,c] of [[0,2,30,21,'#377d55'],[-17,-8,21,19,'#438f5d'],[14,-10,21,20,'#4b9d60'],[-3,-17,21,16,'#6ab76e']])oval(x+dx,y+dy,rx,ry,c,'#346d50',1.5);
+ for(let i=0;i<10;i++){const bx=x-22+(i*17)%47,by=y-17+(i*11)%29;oval(bx,by,4,4,'#ad3e63','#703d57',1);oval(bx-1,by-1,1.2,1.2,'#f7b3b9')}
+}
+function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
+function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+function updateWorldLabels(){
+ // Only show the closest point of interest, avoiding a sea of overlapping tags.
+ let closest=null,best=Infinity;
+ for(const o of objects){const d=Math.hypot(s.x-o.x,s.y-o.y);if(d<best){best=d;closest=o}}
+ for(const el of worldlabels.children)el.hidden=!closest||el.dataset.objectId!==closest.id||best>190;
+}
+function draw(){
+ updateWorldLabels();
+ ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
+ // Original cosy farming-RPG pixel illustration, drawn crisply at native resolution.
+ const px=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x/2)*2,Math.round(y/2)*2,Math.max(2,Math.round(w/2)*2),Math.max(2,Math.round(h/2)*2))};
+ const leaf=(x,y,r,c)=>{ctx.fillStyle=c;const xx=Math.round(x/4)*4,yy=Math.round(y/4)*4;for(let row=-r*.7;row<=r*.7;row+=6){const half=Math.floor(Math.sqrt(Math.max(0,1-row*row/(r*r*.49)))*r/6)*6;ctx.fillRect(xx-half,yy+Math.round(row/6)*6,half*2,6)}};
+ // Earthy tile palette and small repeated ground details.
+ px(0,0,W,H,'#8fbd73');
+ for(let y=0;y<H;y+=24)for(let x=0;x<W;x+=24){
+  const k=((x/24)*31+(y/24)*17)%13;
+  if(k<5){px(x+4,y+8,3,5,'#6fa861');px(x+9,y+6,3,6,'#77ac64');px(x+15,y+11,4,3,'#a4cc82')}
+  if(k===7){px(x+9,y+13,3,3,'#e7d7a2');px(x+13,y+11,3,3,'#fff0c8')}
+ }
+ // Layered mountains and wooded horizon.
+ shape([[0,84],[80,46],[159,74],[243,36],[342,77],[453,38],[565,79],[685,41],[793,76],[900,47],[900,135],[0,135]],'#709b85');
+ shape([[0,112],[80,81],[169,112],[268,75],[360,115],[469,76],[569,111],[680,78],[790,110],[900,81],[900,152],[0,152]],'#4e8976');
+ for(let i=0;i<35;i++){const x=i*29-10,y=103+(i*17)%25;px(x,y-17,7,25,'#416d5c');shape([[x-13,y],[x+3,y-42],[x+19,y]],'#3c7b62')}
+ // Irregular lake with dark shoreline, shallows and bright water.
+ const shore=[[82,148],[154,113],[282,115],[390,104],[516,119],[665,109],[785,139],[836,186],[817,247],[755,279],[643,281],[550,272],[460,288],[347,278],[247,289],[130,273],[73,229],[61,187]];
+ shape(shore,'#456d69','#375b57',5);
+ shape([[95,155],[161,126],[282,130],[390,117],[518,133],[662,124],[777,153],[819,191],[801,240],[748,265],[638,267],[547,257],[458,273],[348,264],[244,274],[139,259],[88,224],[77,185]],'#5d9f9e');
+ shape([[111,161],[172,140],[289,141],[392,129],[520,146],[658,136],[760,162],[800,195],[782,231],[731,251],[631,255],[541,247],[456,260],[345,250],[246,260],[150,245],[104,216],[93,184]],'#78b6b2');
+ for(let i=0;i<58;i++){const x=130+(i*83)%645,y=151+(i*37)%97;px(x+Math.sin(s.tick*.018+i)*4,y,13+(i%3)*6,2,['#d0e7c9','#95cbc5','#4c9299','#a9d8ca','#6ca6aa'][i%5]);if(i%7===0)px(x+8,y+4,8,2,'#397e8b')}
+ for(const [x,y] of [[195,232],[645,231],[721,211]]){leaf(x,y,13,'#438e6b');px(x+3,y-3,5,4,'#d8b7bc')}
+ // Hand-placed stepped dirt-path tiles; no Bézier curves or smooth strokes.
+ const pathCenters=[[496,348],[501,364],[501,380],[500,396],[494,412],[488,428],[481,444],[473,460],[464,476],[455,492],[447,508],[439,524],[432,540],[426,556],[419,572],[414,588],[410,604]];
+ for(const [x,y] of pathCenters){
+  px(x-27,y-9,54,22,'#756d4c');
+  px(x-23,y-9,46,20,'#bc9b6b');
+  px(x-19,y-7,38,16,'#e3c58d');
+  px(x-13,y-5,26,11,'#efd6a2');
+ }
+ for(let i=0;i<28;i++){
+  const j=i%pathCenters.length,[x,y]=pathCenters[j];
+  px(x-12+(i*13)%24,y-5+(i*7)%10,4,2,i%2?'#cba875':'#f8e2b3');
+ }
+ // Little shaded field borders, fallen leaves and scattered decorative clusters.
+ for(let i=0;i<48;i++){
+  const x=(i*193+59)%W,y=301+(i*107)%290;
+  if((x>380&&x<535&&y>345)||(x>70&&x<830&&y<300))continue;
+  px(x,y,12,4,'#699b5d');px(x+4,y-4,8,4,'#77ad64');px(x+8,y+4,5,3,'#b6cf84');
+  if(i%4===0){px(x-5,y+8,5,3,'#e1b88a');px(x+2,y+10,3,3,'#9f8060')}
+ }
+ // Detailed tufts, stones, mushrooms and tiny meadow flowers.
+ for(let i=0;i<115;i++){const x=(i*137+47)%W,y=298+(i*83)%300;
+  if(x>382&&x<542&&y>344)continue;
+  px(x,y,3,8,'#568f54');px(x-5,y+3,3,5,'#649c58');px(x+5,y+4,3,4,'#b0d084');
+  if(i%8===0){px(x+5,y-5,5,5,i%3?'#f6e6a8':'#e9c2d3');px(x+7,y-3,2,2,'#c89566')}
+  if(i%11===0){px(x-10,y+7,9,5,'#9e9b83');px(x-8,y+6,4,2,'#c4c1a0')}
+ }
+ // Rich clustered canopy sprites and grounding shadows.
+ const tree=(x,y,z=1,pine=false)=>{
+  ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+  leaf(0,19,36,'rgba(46,78,48,.25)');
+  px(-11,-34,22,60,'#493c36');px(-9,-32,17,56,'#79553c');px(-7,-28,6,49,'#b28a57');px(4,-26,5,46,'#5a4237');px(-4,-8,3,12,'#d1a06c');px(1,10,3,9,'#8e6747');
+  if(pine){for(const [dy,r] of [[-65,23],[-44,31],[-22,37]]){shape([[-r-3,dy+22],[0,dy-32],[r+3,dy+22]],'#244e4c');shape([[-r,dy+19],[0,dy-29],[r,dy+19]],'#346f5e');shape([[-r+9,dy+10],[-4,dy-21],[8,dy+10]],'#579a77');shape([[-r+15,dy+1],[-5,dy-17],[0,dy+1]],'#8bc49a');px(7,dy+8,8,4,'#285e53')}}
+  else{for(const [dx,dy,r] of [[-24,-47,29],[22,-50,31],[0,-75,35],[-7,-35,33]]){
+   leaf(dx+4,dy+8,r+5,'#244f43');leaf(dx+3,dy+4,r+2,'#326c4f');leaf(dx,dy,r,'#4d9660');leaf(dx-7,dy-8,r*.72,'#78b773');leaf(dx-11,dy-13,r*.42,'#9dce83');
+   px(dx-12,dy-15,9,4,'#c0e09a');px(dx+8,dy-3,9,5,'#387e57');px(dx+12,dy+7,12,5,'#326c4f');px(dx-19,dy-3,6,4,'#5da66a')
+  }}
+  ctx.restore();
+ };
+ for(const t of [[38,179,.9,0],[80,359,.9,1],[39,551,.9,0],[159,582,.82,0],[851,164,.9,1],[875,346,.9,0],[844,560,.9,0],[733,574,.82,1],[260,95,.62,1],[642,97,.62,0]])tree(...t);
+ const bush=(x,y,berries=true)=>{
+  leaf(x+2,y+15,34,'#254d40');leaf(x,y+12,31,'#315f48');leaf(x-13,y-5,24,'#3c8054');leaf(x+13,y-7,23,'#4a935b');leaf(x,y-17,20,'#6eb16a');leaf(x-8,y-22,12,'#a2ce83');for(let i=0;i<8;i++){const dx=-21+(i*13)%43,dy=-15+(i*9)%29;px(x+dx,y+dy,7,3,i%2?'#78b96d':'#2f704f')}
+  for(let i=0;i<9;i++){const bx=x-22+(i*17)%45,by=y-16+(i*13)%28;px(bx,by,6,6,berries?'#c94e65':'#b98c54');px(bx+1,by,2,2,'#f1b3a1');px(bx+4,by+4,2,2,berries?'#893e59':'#73523f')}
+ };
+ for(const o of objects){
+  if(o.kind==='berry')bush(o.x,o.y);
+  if(o.kind==='nuts')bush(o.x,o.y,false);
+  if(o.kind==='apple'){tree(o.x,o.y,.76);for(const [dx,dy] of [[-20,-42],[14,-56],[2,-70],[26,-29]]){px(o.x+dx,o.y+dy,10,10,'#c7514c');px(o.x+dx+2,o.y+dy+1,3,3,'#f3a07d')}}
+  if(o.kind==='carrot'){px(o.x-27,o.y+7,57,12,'#9b7c57');for(const dx of [-16,0,16]){px(o.x+dx-4,o.y,9,16,'#db8242');px(o.x+dx-1,o.y-11,4,13,'#4b9b56');px(o.x+dx+3,o.y-7,4,8,'#78b86c')}}
+  if(o.kind==='pond'){leaf(o.x,o.y,22,'#4e9a9e');leaf(o.x-4,o.y-3,12,'#84c6c2')}
+  if(o.kind==='stone'){leaf(o.x,o.y+6,22,'#596d72');leaf(o.x-3,o.y,18,'#a1a9a4');px(o.x-10,o.y-6,14,3,'#d1d0bc')}
+  if(o.kind==='flower'){px(o.x-2,o.y,4,17,'#498e56');for(const [dx,dy] of [[0,-11],[-9,-3],[9,-3],[0,5]])leaf(o.x+dx,o.y+dy,7,'#f8e5e5');leaf(o.x,o.y-2,5,'#e9bd6e')}
+  if(o.kind==='tree')tree(o.x,o.y,.75);
+  if(o.kind==='mushroom'){px(o.x-4,o.y-3,9,15,'#eee2c6');leaf(o.x,o.y-7,19,'#ba666a');px(o.x-8,o.y-14,5,4,'#f8dfc4');px(o.x+7,o.y-11,5,4,'#f8dfc4')}
+  if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
+
+ }
+ // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
+ const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
+ const darkness=Math.pow(1-sunlight,1.5)*.68;
+ if(darkness>.01){ctx.fillStyle='rgba(9,17,52,'+darkness.toFixed(3)+')';ctx.fillRect(0,0,W,H)}
+ // Sun and moon cross the sky at different times.
+ const angle=phase*Math.PI*2-Math.PI/2;
+ const celestialX=W/2+Math.cos(angle)*360,celestialY=82-Math.sin(angle)*48;
+ if(sunlight>.42){oval(celestialX,Math.max(18,celestialY),17,17,'#ffe9a0')}
+ else{oval(celestialX,Math.max(18,celestialY),14,14,'#f1f2d9')}
+ if(darkness>.2){
+  ctx.fillStyle='rgba(255,255,225,'+Math.min(.85,darkness*1.4)+')';
+  for(let i=0;i<36;i++){const x=(i*137+39)%W,y=8+(i*47)%72;ctx.fillRect(x,y,2,2)}
+ }
+ document.getElementById('worldclock').textContent=timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night');
+ // A gentle vignette frames the scene like an illustrated storybook.
+ const glow=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,610);glow.addColorStop(0,'rgba(255,255,255,0)');glow.addColorStop(1,'rgba(28,75,58,.14)');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+ // Hand-authored pixel sprite: no ellipses, arcs, roundRect or stroked vector limbs.
+ ctx.save();ctx.translate(Math.round(s.x/4)*4,Math.round(s.y/4)*4);
+ const walking=s.task&&s.task.type!=='rest',frame=walking?Math.floor(s.tick/3)%2:0;
+ const mood=s.hunger>75?'hungry':s.energy<30?'sleepy':s.curiosity>65?'curious':'happy';
+ const p=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+ // Shadow and animated boots.
+ p(-20,27,40,4,'rgba(36,67,61,.25)');p(-12,31,24,3,'rgba(36,67,61,.14)');
+ p(-13,15,7,13+(frame?3:0),'#294d61');p(7,15,7,13+(frame?0:3),'#294d61');
+ p(-17,27+(frame?3:0),13,5,'#3e6573');p(5,27+(frame?0:3),13,5,'#3e6573');
+ p(-17,27+(frame?3:0),13,2,'#81a7a6');p(5,27+(frame?0:3),13,2,'#81a7a6');
+ // Tiny articulated arms.
+ p(-28,-7+(frame?3:0),9,7,'#2d4b58');p(-31,-3+(frame?3:0),7,13,'#249c97');
+ p(20,-7+(frame?0:3),9,7,'#2d4b58');p(25,-3+(frame?0:3),7,13,'#249c97');
+ p(-31,7+(frame?3:0),7,5,'#72d5bf');p(25,7+(frame?0:3),7,5,'#72d5bf');
+ // Outlined stepped casing with contrasting side and top bevels.
+ p(-20,-30,40,49,'#243e52');p(-23,-26,46,41,'#243e52');
+ p(-19,-27,38,43,'#116f78');p(-21,-23,42,35,'#21b0a4');p(-17,-23,8,36,'#35c1b0');p(11,-21,6,33,'#168b8e');p(-18,10,33,5,'#168a8d');
+ p(-16,-26,29,4,'#7cddc0');p(-18,-20,4,30,'#58cbb6');p(15,-22,4,33,'#116c78');
+ p(-14,-23,29,26,'#2c4e5b');p(-11,-20,23,20,'#c7ebd5');
+ p(-10,-19,20,3,'#eff7d8');p(-10,-16,3,12,'#e3f4df');p(8,-16,3,12,'#9dcdbf');p(-9,-3,18,2,'#9acdb8');p(-7,-18,8,2,'#ffffff');
+ // Pixel expressions.
+ if(mood==='sleepy'){p(-7,-11,5,2,'#304956');p(4,-11,5,2,'#304956');p(-2,-6,7,2,'#304956')}
+ else{p(-6,-13,3,5,'#304956');p(6,-13,3,5,'#304956');
+  if(mood==='hungry'){p(0,-6,5,5,'#304956');p(1,-5,3,3,'#e3a8a1')}
+  else{p(-2,-6,10,2,'#304956');p(0,-4,6,2,'#304956')}
+ }
+ p(-12,-7,3,3,'#f1b5aa');p(10,-7,3,3,'#f1b5aa');p(-12,-6,2,2,'#e58f95');p(11,-6,2,2,'#e58f95');
+ // D-pad, face buttons, speaker and power indicator.
+ p(-11,5,22,2,'#245363');p(-12,10,5,13,'#e5b84d');p(-16,14,13,5,'#e5b84d');
+ p(-10,12,2,8,'#f7db84');p(-12,11,2,9,'#b88139');p(8,13,7,7,'#2d4b5a');p(9,13,5,5,'#e87892');
+ p(13,6,6,6,'#2d4b5a');p(14,6,4,4,'#8acb78');p(-1,17,6,2,'#2d4b5a');
+ ctx.restore();
+}
+
+function petReply(message){
+ const q=message.toLowerCase(),found=s.discoveries.map(id=>objects.find(o=>o.id===id)?.label).filter(Boolean);
+ if(/\b(hello|hi|hey|hiya)\b/.test(q))return 'Hello again! It’s nice when you visit.';
+ if(/\b(book|read|study|learn|knowledge|smart|jellyfish|octopus|bees|facts?)\b/.test(q)){
+  const topic=researchFacts.find(f=>q.includes(f.topic.replace(/s$/,'')))?.topic;
+  const known=topic?s.facts.filter(f=>f.topic===topic):s.facts;
+  return known.length?'I learned that '+known[(s.tick+known.length)%known.length].fact:'I haven’t learned that yet. There’s a research laptop in the clearing I can use!';
+ }
+ if(/\b(name|who are you)\b/.test(q))return 'I’m '+s.name+'! I’m still learning who I am.';
+ if(/\b(favourite|favorite|like doing|personality)\b/.test(q)){const likes=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);return likes.length&&likes[0][1]>0?'I think I especially enjoy '+({lake:'watching the lake',shade:'resting under the tree',flowers:'visiting flowers',stones:'examining stones',mushrooms:'studying mushrooms',berries:'checking berries',shore:'exploring the shore'}[likes[0][0]]||'exploring')+'.':'I’m still discovering what I enjoy most.'}
+ if(/\b(how are you|you okay|feeling)\b/.test(q))return s.energy<30?'A little tired, honestly. I think I need to rest.':s.hunger>70?'I’m doing alright, but I could really do with some food.':'I feel curious today. There’s still so much to notice.';
+ if(/\b(hungry|food|eat)\b/.test(q))return s.hunger>55?'Yes, I’m getting hungry. I remember the berry bushes.':'Not especially hungry right now. I’ll look for food when I need it.';
+ if(/\b(tired|sleep|rest)\b/.test(q))return s.energy<45?'I am tired. I’ll find somewhere quiet to rest.':'I’m not too tired yet. I want to keep looking around.';
+ if(/\b(explore|discover|interesting|world)\b/.test(q))return found.length?'I’ve found '+found.join(', ')+'. I wonder what else is out there.':'I haven’t discovered anything yet. I’m going to have a look around.';
+ if(/\b(what have you found|discoveries|remember)\b/.test(q))return found.length?'I remember '+found.join(', ')+'.':'Not much yet. Everything is still new to me.';
+ if(/\b(love you|good pet|well done|good job)\b/.test(q))return 'That makes me feel a little more comfortable. Thank you.';
+ if(/\b(bye|goodbye|see you)\b/.test(q))return 'See you later. I’ll keep exploring while you’re away.';
+ return ['I’m not quite sure what you mean, but I’m listening.','That’s interesting. I’ll have to think about it.','I don’t know much yet. Maybe I’ll understand more as I explore.','I like having someone to talk to.'][s.tick%4];
+}
+function addDialogue(from,text){
+ s.dialogue.push({from,text,tick:s.tick});s.dialogue=s.dialogue.slice(-30);save();renderDialogue();
+}
+function escapeHtml(v){return String(v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function renderDialogue(){
+ const el=document.getElementById('chatlog');if(!el)return;
+ el.innerHTML=s.dialogue.map(m=>'<div class="bubble '+(m.from==='you'?'you':'pet')+'"><div class="chatmeta">'+(m.from==='you'?'You':escapeHtml(s.name))+' · tick '+m.tick+'</div>'+m.text.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</div>').join('');
+ el.scrollTop=el.scrollHeight;
+}
+document.getElementById('chatform').addEventListener('submit',e=>{
+ e.preventDefault();const input=document.getElementById('chatinput'),message=input.value.trim();if(!message)return;
+ addDialogue('you',message);input.value='';addDialogue('pet',petReply(message));
+});
+
+function render(){
+ draw();renderDialogue();document.getElementById('petname').value=document.activeElement===document.getElementById('petname')?document.getElementById('petname').value:s.name;
+ const ranked=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);
+ const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher'};
+ document.getElementById('personality').textContent=ranked.length&&ranked[0][1]>0?'Developing personality: '+(labels[ranked[0][0]]||'Explorer')+' · preferences grow through activities':'Personality develops as your PET explores and chooses activities.';
+ document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':('Alive · '+(s.task?.type==='rest'?'Resting':s.task?.type==='comfort'?'Seeking comfort':s.task?.type==='eat'?'Finding food':s.task?.type==='discover'?'Exploring':s.task?.type==='activity'?'Heading to '+(s.task.target==='reading'?'research laptop':s.task.target):'Choosing next activity'));
+ const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
+ document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
+ document.getElementById('facts').innerHTML=s.facts.length?s.facts.map(f=>'<span class="chip" title="'+escapeHtml(f.fact)+'">'+escapeHtml(f.topic)+': '+escapeHtml(f.fact)+'</span>').join(''):'<span class="muted">No research facts yet. PET will learn by researching.</span>';
+ document.getElementById('discoveries').innerHTML=s.discoveries.map(id=>'<span class="chip">'+(objects.find(o=>o.id===id)?.label||id)+'</span>').join('')||'<span class="muted">Nothing yet. The world is new.</span>';
+ document.getElementById('events').innerHTML=s.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('');
+}
+document.getElementById('nameform').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('petname').value.trim().replace(/\s+/g,' ').slice(0,24);if(!name)return;s.name=name;save();render()});
+document.getElementById('pause').onclick=()=>{paused=!paused;document.getElementById('pause').textContent=paused?'Resume':'Pause';render()};
+document.getElementById('reset').onclick=()=>{if(confirm('Start a new creature? This clears this browser’s saved PET world.')){s=fresh();save();render()}};
+render();setInterval(()=>{if(!paused)step()},200);
 </script></body></html>
