@@ -229,11 +229,26 @@ function tileBush(x,y){
  for(let i=0;i<5;i++){let xx=x-15+i*8;polygon([[xx-5,y-3],[xx,y-16-(i%2)*4],[xx+7,y-2],[xx+4,y+7]],i%2?'#2e8455':'#4da76a')}
 }
 
-function shape(points,fill,stroke='#26344d',width=3){
- ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
- for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
- ctx.closePath();ctx.fillStyle=fill;ctx.fill();
- if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.lineJoin='round';ctx.stroke()}
+// Scanline polygon rasterizer: stepped, grid-aligned silhouettes instead of vector edges.
+function shape(points,fill,stroke=null,width=0){
+ const grid=4,ys=points.map(p=>p[1]),lo=Math.floor(Math.min(...ys)/grid)*grid,hi=Math.ceil(Math.max(...ys)/grid)*grid;
+ const paint=(color,inset=0)=>{
+  ctx.fillStyle=color;
+  for(let y=lo;y<hi;y+=grid){
+   const crossings=[];
+   for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    if((a[1]<=y+2&&b[1]>y+2)||(b[1]<=y+2&&a[1]>y+2))
+     crossings.push(a[0]+(y+2-a[1])*(b[0]-a[0])/(b[1]-a[1]));
+   }
+   crossings.sort((a,b)=>a-b);
+   for(let i=0;i+1<crossings.length;i+=2){
+    const x=Math.ceil((crossings[i]+inset)/grid)*grid,ex=Math.floor((crossings[i+1]-inset)/grid)*grid;
+    if(ex>x)ctx.fillRect(x,y,ex-x,grid);
+   }
+  }
+ };
+ if(stroke){paint(stroke);paint(fill,Math.max(2,width))}else paint(fill);
 }
 function oval(x,y,rx,ry,fill,stroke='#26344d',width=3){
  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
@@ -288,13 +303,25 @@ function draw(){
  shape([[111,161],[172,140],[289,141],[392,129],[520,146],[658,136],[760,162],[800,195],[782,231],[731,251],[631,255],[541,247],[456,260],[345,250],[246,260],[150,245],[104,216],[93,184]],'#78b6b2');
  for(let i=0;i<36;i++){const x=130+(i*83)%645,y=151+(i*37)%97;px(x+Math.sin(s.tick*.018+i)*4,y,13+(i%3)*6,2,i%4===0?'#d0e7c9':'#95cbc5')}
  for(const [x,y] of [[195,232],[645,231],[721,211]]){leaf(x,y,13,'#438e6b');px(x+3,y-3,5,4,'#d8b7bc')}
- // Soft path edged with soil and pale sandy highlights.
- ctx.lineCap='butt';ctx.lineJoin='bevel';
- const path=()=>{ctx.beginPath();ctx.moveTo(413,615);ctx.bezierCurveTo(426,542,479,478,488,436);ctx.bezierCurveTo(504,391,513,367,496,344)};
- ctx.strokeStyle='#8b795a';ctx.lineWidth=52;path();ctx.stroke();
- ctx.strokeStyle='#d6b786';ctx.lineWidth=45;path();ctx.stroke();
- ctx.strokeStyle='#e7d1a1';ctx.lineWidth=30;path();ctx.stroke();
- for(let i=0;i<30;i++){const x=420+(i*37)%88,y=360+(i*59)%240;px(x,y,3+(i%3),2,'#b79b74')}
+ // Hand-placed stepped dirt-path tiles; no Bézier curves or smooth strokes.
+ const pathCenters=[[496,348],[501,364],[501,380],[500,396],[494,412],[488,428],[481,444],[473,460],[464,476],[455,492],[447,508],[439,524],[432,540],[426,556],[419,572],[414,588],[410,604]];
+ for(const [x,y] of pathCenters){
+  px(x-27,y-9,54,22,'#756d4c');
+  px(x-23,y-9,46,20,'#bc9b6b');
+  px(x-19,y-7,38,16,'#e3c58d');
+  px(x-13,y-5,26,11,'#efd6a2');
+ }
+ for(let i=0;i<28;i++){
+  const j=i%pathCenters.length,[x,y]=pathCenters[j];
+  px(x-12+(i*13)%24,y-5+(i*7)%10,4,2,i%2?'#cba875':'#f8e2b3');
+ }
+ // Little shaded field borders, fallen leaves and scattered decorative clusters.
+ for(let i=0;i<48;i++){
+  const x=(i*193+59)%W,y=301+(i*107)%290;
+  if((x>380&&x<535&&y>345)||(x>70&&x<830&&y<300))continue;
+  px(x,y,12,4,'#699b5d');px(x+4,y-4,8,4,'#77ad64');px(x+8,y+4,5,3,'#b6cf84');
+  if(i%4===0){px(x-5,y+8,5,3,'#e1b88a');px(x+2,y+10,3,3,'#9f8060')}
+ }
  // Detailed tufts, stones, mushrooms and tiny meadow flowers.
  for(let i=0;i<115;i++){const x=(i*137+47)%W,y=298+(i*83)%300;
   if(x>382&&x<542&&y>344)continue;
@@ -332,7 +359,7 @@ function draw(){
   if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
   ctx.save();ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
   const ly=o.y+(o.kind==='tree'?43:35),tw=ctx.measureText(o.label).width+16;
-  ctx.fillStyle='rgba(35,54,45,.88)';ctx.beginPath();ctx.roundRect(o.x-tw/2,ly-11,tw,22,5);ctx.fill();
+  ctx.fillStyle='rgba(35,54,45,.9)';ctx.fillRect(Math.round((o.x-tw/2)/2)*2,ly-10,Math.ceil(tw/2)*2,20);
   ctx.fillStyle='#fff5dc';ctx.fillText(o.label,o.x,ly);ctx.restore();
  }
  // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
