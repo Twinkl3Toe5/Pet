@@ -89,6 +89,8 @@ function step(){
  // A task is only released on arrival/completion, not on the next tick.
  if(!s.task || typeof s.task!=='object')s.task=null;
  if(s.task && !['eat','rest','comfort','discover','activity'].includes(s.task.type))s.task=null;
+ if(s.task?.type==='discover' && (!objects.some(o=>o.id===s.task.target)||s.discoveries.includes(s.task.target)))s.task=null;
+ if(s.task?.type==='activity' && !['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.task.target))s.task=null;
  if(!s.task){
   if(s.hunger>=65)s.task={type:'eat',target:bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id};
   else if(s.energy<35)s.task={type:'rest'};
@@ -106,14 +108,14 @@ function step(){
   if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Reached the berry bush and ate.';kind='food';s.task=null}
   else{move(t,4.32);if(kind!=='plan')msg='Walking to the berry bush.'}
  }else if(s.task.type==='rest'){
-  s.energy=Math.min(100,s.energy+.42);s.comfort=Math.min(100,s.comfort+.05);
-  if(s.energy>=85){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
+  s.energy=Math.min(100,s.energy+1.8);s.comfort=Math.min(100,s.comfort+.12);
+  if(s.energy>=65){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
   else if(kind!=='plan')msg='Resting and recharging.';
  }else if(s.task.type==='comfort'){
   const t=objects.find(o=>o.id==='tree');
   if(dist(s,t)>35){move(t,3.52);if(kind!=='plan')msg='Walking to the old tree.'}
-  else{s.comfort=Math.min(100,s.comfort+.5);s.energy=Math.min(100,s.energy+.03);
-   if(s.comfort>=80){msg='Finished relaxing under the tree.';kind='activity';s.task=null}
+  else{s.comfort=Math.min(100,s.comfort+1.5);s.energy=Math.min(100,s.energy+.03);
+   if(s.comfort>=65){msg='Finished relaxing under the tree.';kind='activity';s.task=null}
    else if(kind!=='plan')msg='Relaxing under the tree.'}
  }else if(s.task.type==='discover'){
   s.discoveryTarget=s.task.target;
@@ -382,7 +384,7 @@ function render(){
  const ranked=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);
  const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher'};
  document.getElementById('personality').textContent=ranked.length&&ranked[0][1]>0?'Developing personality: '+(labels[ranked[0][0]]||'Explorer')+' · preferences grow through activities':'Personality develops as your PET explores and chooses activities.';
- document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':'Alive · browser simulation';
+ document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':('Alive · '+(s.task?.type==='rest'?'Resting':s.task?.type==='comfort'?'Seeking comfort':s.task?.type==='eat'?'Finding food':s.task?.type==='discover'?'Exploring':s.task?.type==='activity'?'Heading to '+(s.task.target==='reading'?'research laptop':s.task.target):'Choosing next activity'));
  const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
  document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
  document.getElementById('facts').innerHTML=s.facts.length?s.facts.map(f=>'<span class="chip" title="'+escapeHtml(f.fact)+'">'+escapeHtml(f.topic)+': '+escapeHtml(f.fact)+'</span>').join(''):'<span class="muted">No research facts yet. PET will learn by researching.</span>';
