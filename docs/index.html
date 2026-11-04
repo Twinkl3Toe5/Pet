@@ -166,7 +166,8 @@ function step(){
   }
  }
  s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));
- if(kind==='plan'||kind==='learning'||kind==='discovery'||kind==='activity'||kind==='food'||(msg&&s.tick%25===0))log(kind,msg);
+ // The log is a journal of completed actions, not a running travel commentary.
+ if(['learning','discovery','activity','food'].includes(kind))log(kind,msg);
  save();render();
 }
 
