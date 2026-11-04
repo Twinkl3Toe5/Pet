@@ -245,27 +245,22 @@ function cloud(x,y,z=1){
 }
 function cartoonTree(x,y,z=1,kind=0){
  ctx.save();ctx.translate(x,y);ctx.scale(z,z);
- ctx.strokeStyle='#273b47';ctx.lineWidth=3;ctx.fillStyle='#a46b43';
- ctx.beginPath();ctx.moveTo(-9,22);ctx.lineTo(-7,-29);ctx.lineTo(-18,-44);ctx.lineTo(-9,-48);ctx.lineTo(1,-35);ctx.lineTo(10,-55);ctx.lineTo(19,-51);ctx.lineTo(9,-26);ctx.lineTo(10,22);ctx.closePath();ctx.fill();ctx.stroke();
- if(kind===1){
-   shape([[-33,-10],[-16,-39],[0,-72],[16,-39],[34,-10]],'#1d8d80');
-   shape([[-27,-26],[-12,-53],[0,-82],[12,-53],[27,-26]],'#35b39c');
-   shape([[-18,-46],[0,-94],[18,-46]],'#51c4a3');
- }else{
-   oval(-18,-49,27,27,'#9bd848');oval(17,-51,30,29,'#b6e95b');
-   oval(0,-69,37,31,'#b1e64f');oval(-23,-36,25,20,'#a6df46');
-   oval(22,-35,24,20,'#b8e957');
- }
- // Bark grain and small canopy highlights make each tree feel layered.
- ctx.strokeStyle='rgba(79,45,30,.45)';ctx.lineWidth=1.5;
- for(const dx of [-4,2,6]){ctx.beginPath();ctx.moveTo(dx,12);ctx.lineTo(dx-2,-14);ctx.stroke()}
- if(kind===0){for(const [dx,dy] of [[-27,-58],[4,-80],[26,-57],[-9,-43]])oval(dx,dy,9,5,'rgba(230,255,151,.42)')}
- else{for(const [dx,dy] of [[-9,-61],[10,-44],[-4,-79]])oval(dx,dy,5,3,'rgba(181,255,222,.4)')}
+ oval(2,22,39,10,'rgba(34,74,48,.17)');
+ // Warm bark, branches and irregular foliage with depth and dappled light.
+ ctx.fillStyle='#79523d';ctx.strokeStyle='#4e463d';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(-10,24);ctx.lineTo(-7,-35);ctx.lineTo(-22,-53);ctx.lineTo(-18,-59);ctx.lineTo(-3,-45);ctx.lineTo(9,-65);ctx.lineTo(15,-61);ctx.lineTo(8,-32);ctx.lineTo(11,24);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.strokeStyle='#ad7951';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-3,16);ctx.lineTo(-2,-25);ctx.stroke();
+ const canopy=kind===1?[[0,-79,27,31],[-19,-50,24,27],[18,-49,23,27],[0,-40,32,25]]:[[0,-70,37,29],[-29,-51,29,28],[27,-52,29,28],[-13,-35,33,24],[20,-32,28,22]];
+ for(const [cx,cy,rx,ry] of canopy)oval(cx+2,cy+5,rx+2,ry+2,'#3d7654');
+ for(const [cx,cy,rx,ry] of canopy)oval(cx,cy,rx,ry,kind===1?'#397e68':'#4d9460');
+ for(const [cx,cy,rx,ry] of canopy){oval(cx-5,cy-6,rx*.74,ry*.68,kind===1?'#65ae81':'#76bd74');oval(cx-11,cy-12,rx*.35,ry*.23,kind===1?'#a1d6a1':'#b8dc86')}
+ for(let i=0;i<13;i++){const px=((i*29)%65)-32,py=-83+((i*17)%60);oval(px,py,2.4,1.5,i%2?'#b2d98a':'#376f53')}
  ctx.restore();
 }
 function berryBush(x,y){
- oval(x,y,29,20,'#399b5b');oval(x-14,y-8,17,15,'#56bb62');oval(x+12,y-8,19,17,'#5dbd60');
- for(let i=0;i<5;i++){const bx=x-19+(i*17)%39,by=y-13+(i*11)%21;oval(bx,by,5,5,'#f05b6d','#3a4d47',1.5)}
+ oval(x,y+13,32,8,'rgba(35,74,47,.17)');
+ for(const [dx,dy,rx,ry,c] of [[0,2,30,21,'#377d55'],[-17,-8,21,19,'#438f5d'],[14,-10,21,20,'#4b9d60'],[-3,-17,21,16,'#6ab76e']])oval(x+dx,y+dy,rx,ry,c,'#346d50',1.5);
+ for(let i=0;i<10;i++){const bx=x-22+(i*17)%47,by=y-17+(i*11)%29;oval(bx,by,4,4,'#ad3e63','#703d57',1);oval(bx-1,by-1,1.2,1.2,'#f7b3b9')}
 }
 function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
 function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
@@ -301,6 +296,14 @@ function draw(){
  // Shoreline and two gentle grass tones.
  shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#a8df69',null);
  shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#bde989',null);
+ // Small shaded grass clusters and wildflowers, placed consistently each frame.
+ for(let i=0;i<140;i++){
+  const x=(i*173+37)%W,y=320+(i*89)%277;
+  if(x>385&&x<540&&y>360)continue;
+  ctx.strokeStyle=i%2?'#5eaa68':'#78ba72';ctx.lineWidth=2;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-7);ctx.moveTo(x,y);ctx.lineTo(x,y-10);ctx.moveTo(x+5,y);ctx.lineTo(x+8,y-7);ctx.stroke();
+  if(i%11===0){oval(x+4,y-10,3,3,i%3?'#f8df9b':'#f8c7d6');oval(x+4,y-10,1,1,'#d29e65')}
+ }
  // Soft grassy texture, pebbles and tiny flowers (deterministic placement).
  for(let i=0;i<115;i++){
   const x=(i*173+37)%W,y=316+(i*89)%277;
@@ -337,9 +340,9 @@ function draw(){
   if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
   if(o.kind==='book'){ctx.save();ctx.translate(o.x,o.y);ctx.fillStyle='#46516b';ctx.strokeStyle='#26374a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-19,-19,38,29,3);ctx.fill();ctx.stroke();ctx.fillStyle='#8bd9ec';ctx.fillRect(-15,-15,30,21);ctx.fillStyle='#f5d985';ctx.fillRect(-7,-9,14,3);ctx.fillStyle='#8999ac';ctx.beginPath();ctx.moveTo(-22,12);ctx.lineTo(22,12);ctx.lineTo(17,18);ctx.lineTo(-17,18);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
   // Keep the original object labels visible and legible over the landscape.
-  ctx.save();ctx.font='bold 13px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-  const labelY=o.y+(o.kind==='tree'?40:32),width=ctx.measureText(o.label).width+18;
-  ctx.fillStyle='rgba(25,49,59,.86)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-12,width,24,8);ctx.fill();
+  ctx.save();ctx.font='600 12px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  const labelY=o.y+(o.kind==='tree'?43:34),width=ctx.measureText(o.label).width+16;
+  ctx.fillStyle='rgba(37,61,53,.83)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-11,width,22,6);ctx.fill();
   ctx.fillStyle='#fff9e8';ctx.fillText(o.label,o.x,labelY);ctx.restore();
  }
  // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
