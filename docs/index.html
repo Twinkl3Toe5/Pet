@@ -21,7 +21,7 @@ const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world
 // Render to a genuinely low-resolution pixel buffer, then upscale with nearest-neighbour.
 // All AI and collision coordinates remain in the original 900 x 600 world.
 ctx.setTransform(.5,0,0,.5,0,0);
-const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'},{id:'ball',kind:'ball',x:400,y:490,label:'Play ball'}];
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:585,y:390,label:'Research laptop'},{id:'house',kind:'house',x:815,y:465,label:'PET’s cottage'},{id:'appletree',kind:'apple',x:790,y:365,label:'Apple tree'},{id:'carrots',kind:'carrot',x:265,y:515,label:'Carrot patch'},{id:'nuts',kind:'nuts',x:760,y:535,label:'Hazelnut bush'},{id:'ball',kind:'ball',x:400,y:490,label:'Play ball'}];
 const worldlabels=document.getElementById('worldlabels');
 for(const o of objects){const el=document.createElement('span');el.className='worldlabel';el.textContent=o.label;el.dataset.objectId=o.id;el.style.left=(o.x/W*100)+'%';el.style.top=((o.y-26)/H*100)+'%';worldlabels.appendChild(el)}
 const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0,play:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
@@ -31,6 +31,7 @@ if(typeof s.name!=='string')s.name='PET';
 if(!s.personality||typeof s.personality!=='object')s.personality={};
 if(!Array.isArray(s.facts))s.facts=[];
 if(!Array.isArray(s.journal))s.journal=[];
+if(s.scene!=='home')s.scene='outside';
 if(!s.ball||!Number.isFinite(s.ball.x)||!Number.isFinite(s.ball.y))s.ball={x:400,y:490};
 let paused=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
@@ -143,11 +144,21 @@ function step(){
  // Emergency interruption only; never switch between ordinary needs mid-trip.
  if(s.task.type!=='eat'&&s.hunger>=95){s.task={type:'eat',target:pickFood().id};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need food first.';kind='plan'}
  else if(s.task.type!=='rest'&&s.energy<=5){s.task={type:'rest'};s.activityTarget=null;s.activityProgress=0;msg='Emergency: I need to rest first.';kind='plan'}
+ // Home is a separate walk-in area. PET travels to the door before entering,
+ // and returns to the garden whenever it has another outdoor task.
+ const indoorTask=s.task.type==='rest'||(s.task.type==='activity'&&s.task.target==='reading')||(s.task.type==='discover'&&s.task.target==='book');
+ const house=objects.find(o=>o.id==='house');
+ if(s.scene==='home'&&!indoorTask){s.scene='outside';s.x=house.x;s.y=house.y+36;log('activity','Stepped outside the cottage into the garden.')}
+ if(indoorTask&&s.scene!=='home'){
+  if(dist(s,house)>33){move(house,4.2);save();render();return}
+  s.scene='home';s.x=450;s.y=500;log('activity','Went inside the cottage.');
+ }
  if(s.task.type==='eat'){
   const t=objects.find(o=>o.id===s.task.target&&foods.includes(o))||pickFood();
   if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate '+({berry:'some berries',apple:'an apple',carrot:'fresh carrots',nuts:'some hazelnuts'}[t.kind]||'some food')+' at the '+t.label.toLowerCase()+'.';kind='food';s.task=null}
   else{move(t,4.32);if(kind!=='plan')msg='Walking to '+t.label.toLowerCase()+'.'}
  }else if(s.task.type==='rest'){
+  s.x=450;s.y=455;
   s.energy=Math.min(100,s.energy+1.8);s.comfort=Math.min(100,s.comfort+.12);
   if(s.energy>=65){msg='Finished resting. I feel refreshed.';kind='activity';s.task=null}
   else if(kind!=='plan')msg='Resting and recharging.';
@@ -161,6 +172,7 @@ function step(){
   s.discoveryTarget=s.task.target;
 
   const t=objects.find(o=>o.id===s.discoveryTarget);s.activityTarget=null;
+  if(t.id==='book'&&s.scene==='home'){t.x=610;t.y=390}
   if(dist(s,t)<22){
    s.discoveries.push(t.id);s.discoveryTarget=null;s.task=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
@@ -182,6 +194,7 @@ function step(){
   };
   const activity=activities[s.activityTarget]||activities.lake;
   const t=objects.find(o=>o.id===activity.object);
+  if(activity.object==='book'&&s.scene==='home'){t.x=610;t.y=390}
   if(activity.object==='ball'){t.x=s.ball.x;t.y=s.ball.y}
   if(dist(s,t)>activity.distance){move(t,3.36);if(kind!=='plan')msg='On my way to '+t.label.toLowerCase()+'.'}
   else{
@@ -326,7 +339,11 @@ function updateWorldLabels(){
  const targetId=task&&typeof task==='object'
   ?(task.type==='activity'?activityObjects[task.target]:task.type==='rest'?null:task.target)
   :null;
- for(const el of worldlabels.children)el.hidden=el.dataset.objectId!==targetId;
+ for(const el of worldlabels.children){
+  const id=el.dataset.objectId;
+  el.hidden=id!==targetId||(s.scene==='home'?id!=='book':id==='book');
+  if(id==='book'){el.style.left=(585/W*100)+'%';el.style.top=((300-26)/H*100)+'%'}
+ }
 }
 function draw(){
  updateWorldLabels();
@@ -334,6 +351,7 @@ function draw(){
  // Original cosy farming-RPG pixel illustration, drawn crisply at native resolution.
  const px=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x/2)*2,Math.round(y/2)*2,Math.max(2,Math.round(w/2)*2),Math.max(2,Math.round(h/2)*2))};
  const leaf=(x,y,r,c)=>{ctx.fillStyle=c;const xx=Math.round(x/4)*4,yy=Math.round(y/4)*4;for(let row=-r*.7;row<=r*.7;row+=6){const half=Math.floor(Math.sqrt(Math.max(0,1-row*row/(r*r*.49)))*r/6)*6;ctx.fillRect(xx-half,yy+Math.round(row/6)*6,half*2,6)}};
+ if(s.scene!=='home'){
  // Earthy tile palette and small repeated ground details.
  px(0,0,W,H,'#8fbd73');
  for(let y=0;y<H;y+=24)for(let x=0;x<W;x+=24){
@@ -396,6 +414,7 @@ function draw(){
   for(let i=0;i<9;i++){const bx=x-22+(i*17)%45,by=y-16+(i*13)%28;px(bx,by,6,6,berries?'#c94e65':'#b98c54');px(bx+1,by,2,2,'#f1b3a1');px(bx+4,by+4,2,2,berries?'#893e59':'#73523f')}
  };
  for(const o of objects){
+  if(o.kind==='book')continue;
   if(o.kind==='berry')bush(o.x,o.y);
   if(o.kind==='nuts')bush(o.x,o.y,false);
   if(o.kind==='apple'){tree(o.x,o.y,.76);for(const [dx,dy] of [[-20,-42],[14,-56],[2,-70],[26,-29]]){px(o.x+dx,o.y+dy,10,10,'#c7514c');px(o.x+dx+2,o.y+dy+1,3,3,'#f3a07d')}}
@@ -406,23 +425,44 @@ function draw(){
   if(o.kind==='tree')tree(o.x,o.y,.75);
   if(o.kind==='mushroom'){px(o.x-4,o.y-3,9,15,'#eee2c6');leaf(o.x,o.y-7,19,'#ba666a');px(o.x-8,o.y-14,5,4,'#f8dfc4');px(o.x+7,o.y-11,5,4,'#f8dfc4')}
   if(o.kind==='ball'){const bx=s.ball.x,by=s.ball.y;px(bx-12,by+10,24,4,'#547b53');px(bx-12,by-12,24,24,'#32475a');px(bx-9,by-9,18,18,'#e9d9ac');px(bx-9,by-9,9,9,'#e27d67');px(bx,by,9,9,'#e27d67');px(bx+3,by-9,6,6,'#f8edca');}
+  if(o.kind==='house'){
+   // Chunky pixel cottage with timber walls, tiled roof, windows and a door.
+   px(o.x-69,o.y-82,138,100,'#6a4538');px(o.x-63,o.y-75,126,89,'#d5b88a');
+   px(o.x-74,o.y-92,148,20,'#633b45');px(o.x-62,o.y-110,124,20,'#8c4c50');px(o.x-44,o.y-126,88,18,'#aa5d59');px(o.x-22,o.y-138,44,14,'#bd7164');
+   for(let i=0;i<5;i++)px(o.x-62+i*26,o.y-84,18,5,'#b96965');
+   for(const dx of [-43,29]){px(o.x+dx-3,o.y-52,31,33,'#76534b');px(o.x+dx,o.y-49,25,27,'#94c8c0');px(o.x+dx+11,o.y-49,4,27,'#ead6a1');px(o.x+dx,o.y-37,25,4,'#ead6a1')}
+   px(o.x-14,o.y-46,30,62,'#604a42');px(o.x-10,o.y-42,22,55,'#9a6b4d');px(o.x+5,o.y-15,4,4,'#e9ce7a');
+   px(o.x-22,o.y+16,46,7,'#ad9474');px(o.x-30,o.y+23,62,7,'#c5aa80');
+  }
   if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
 
  }
+ }else{
+  // Cottage interior: separate room, warm wooden floor, rugs, bed and desk.
+  px(0,0,W,H,'#b99168');px(0,0,W,190,'#d8bc8d');px(0,175,W,19,'#745345');
+  for(let y=194;y<H;y+=34){px(0,y,W,3,'#96734e');for(let x=(y%68?0:80);x<W;x+=160)px(x,y,3,34,'#9f7c55')}
+  for(let x of [115,700]){px(x-12,50,110,115,'#705445');px(x,61,86,92,'#9ac7c3');px(x+40,61,7,92,'#f3dfb2');px(x,101,86,7,'#f3dfb2');px(x+7,70,21,12,'#cde6cb')}
+  px(55,330,260,145,'#725349');px(68,341,235,122,'#d9c3a2');px(70,355,230,87,'#8ca6a0');px(80,360,210,62,'#b6d4c4');px(72,333,83,39,'#eee0bf');
+  px(340,460,255,100,'#8b6558');px(355,475,225,69,'#b88570');px(365,485,205,50,'#d6a38a');
+  px(535,365,220,18,'#694e43');px(552,382,18,94,'#6c5146');px(715,382,18,94,'#6c5146');
+  px(575,300,92,65,'#394c56');px(584,309,74,46,'#9acdc2');px(596,318,45,5,'#d9e7c5');px(596,331,55,4,'#568e91');px(565,365,110,8,'#c5b8a0');
+  px(390,80,120,70,'#7b5846');px(401,91,98,48,'#d3bd91');px(421,105,59,7,'#99775a');
+  px(360,575,180,25,'#705344');px(378,575,144,12,'#c5a37e');
+ }
  // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
  const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
- const darkness=Math.pow(1-sunlight,1.5)*.68;
+ const darkness=s.scene==='home'?.06:Math.pow(1-sunlight,1.5)*.68;
  if(darkness>.01){ctx.fillStyle='rgba(9,17,52,'+darkness.toFixed(3)+')';ctx.fillRect(0,0,W,H)}
  // Sun and moon cross the sky at different times.
  const angle=phase*Math.PI*2-Math.PI/2;
  const celestialX=W/2+Math.cos(angle)*360,celestialY=82-Math.sin(angle)*48;
- if(sunlight>.42){oval(celestialX,Math.max(18,celestialY),17,17,'#ffe9a0')}
+ if(s.scene==='home'){}else if(sunlight>.42){oval(celestialX,Math.max(18,celestialY),17,17,'#ffe9a0')}
  else{oval(celestialX,Math.max(18,celestialY),14,14,'#f1f2d9')}
  if(darkness>.2){
   ctx.fillStyle='rgba(255,255,225,'+Math.min(.85,darkness*1.4)+')';
   for(let i=0;i<36;i++){const x=(i*137+39)%W,y=8+(i*47)%72;ctx.fillRect(x,y,2,2)}
  }
- document.getElementById('worldclock').textContent=timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night');
+ document.getElementById('worldclock').textContent=timeLabel()+' · '+(s.scene==='home'?'Inside PET’s cottage':sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night');
  // A gentle vignette frames the scene like an illustrated storybook.
  const glow=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,610);glow.addColorStop(0,'rgba(255,255,255,0)');glow.addColorStop(1,'rgba(28,75,58,.14)');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
  // Hand-authored pixel sprite: no ellipses, arcs, roundRect or stroked vector limbs.
