@@ -265,85 +265,74 @@ function berryBush(x,y){
 function dayPhase(){const now=new Date();return (now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400}
 function timeLabel(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
 function draw(){
- ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
- // Quiet lakeside clearing inspired by the simplicity of classic handheld RPG lakes.
- const meadow=ctx.createLinearGradient(0,100,0,H);meadow.addColorStop(0,'#c2eb9b');meadow.addColorStop(1,'#91cf7b');ctx.fillStyle=meadow;ctx.fillRect(0,0,W,H);
- // Gentle sky at the very top and a distant treeline.
- const sky=ctx.createLinearGradient(0,0,0,115);sky.addColorStop(0,'#8ec9f5');sky.addColorStop(1,'#d9f3ef');ctx.fillStyle=sky;ctx.fillRect(0,0,W,115);
- // Wispy clouds add depth without obscuring the scenery.
- for(const [x,y,z] of [[115,29,1],[390,20,.7],[740,38,.85]]){ctx.save();ctx.globalAlpha=.55;oval(x,y,39*z,9*z,'#ffffff');oval(x-20*z,y+3*z,25*z,8*z,'#ffffff');oval(x+20*z,y+2*z,28*z,7*z,'#ffffff');ctx.restore()}
- shape([[0,75],[85,56],[160,77],[250,51],[360,75],[470,48],[590,72],[705,53],[810,75],[900,56],[900,126],[0,126]],'#66b79d',null);
- // Distant hills and layered woodland silhouettes.
- shape([[0,87],[95,48],[190,84],[312,40],[432,84],[548,47],[664,83],[783,45],[900,78],[900,126],[0,126]],'#83c5a8');
- shape([[0,105],[80,77],[161,105],[253,72],[355,104],[457,77],[571,108],[684,72],[791,103],[900,80],[900,135],[0,135]],'#5ba88d');
- // A single large, calm lake in the upper half.
- shape([[95,132],[185,104],[335,116],[435,100],[578,121],[704,109],[815,145],[843,207],[811,263],[718,283],[590,270],[475,291],[348,273],[220,290],[120,263],[72,212]],'#4eabcc','#3d8e8b',5);
- shape([[115,146],[203,120],[335,130],[446,116],[570,138],[698,125],[797,157],[825,205],[793,248],[706,267],[582,255],[468,275],[345,258],[226,274],[137,248],[91,211]],'#7bd0e9',null);
- // Small, sparse water glints rather than detailed waves.
- ctx.strokeStyle='#d6f5f5';ctx.lineWidth=3;ctx.lineCap='round';
- for(const [x,y] of [[180,180],[328,215],[490,157],[600,223],[737,183],[455,248]]){ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x+17,y);ctx.stroke()}
- // Fine animated water ripples, lily pads and reed clusters.
- ctx.save();ctx.beginPath();ctx.ellipse(450,198,375,89,0,0,Math.PI*2);ctx.clip();
- for(let i=0;i<32;i++){
-  const x=115+(i*97)%690,y=130+(i*41)%135,drift=Math.sin(s.tick*.035+i)*7;
-  ctx.strokeStyle=i%3===0?'rgba(245,255,255,.65)':'rgba(30,121,157,.24)';
-  ctx.lineWidth=i%3===0?2:1.5;ctx.beginPath();ctx.moveTo(x+drift,y);ctx.lineTo(x+drift+13+(i%4)*5,y);ctx.stroke();
+ ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
+ // Original cosy farming-RPG pixel illustration, drawn crisply at native resolution.
+ const px=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)};
+ const leaf=(x,y,r,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(Math.round(x),Math.round(y),r,r*.7,0,0,Math.PI*2);ctx.fill()};
+ // Earthy tile palette and small repeated ground details.
+ px(0,0,W,H,'#8fbd73');
+ for(let y=0;y<H;y+=24)for(let x=0;x<W;x+=24){
+  const k=((x/24)*31+(y/24)*17)%13;
+  if(k<5){px(x+4,y+8,3,5,'#6fa861');px(x+9,y+6,3,6,'#77ac64');px(x+15,y+11,4,3,'#a4cc82')}
+  if(k===7){px(x+9,y+13,3,3,'#e7d7a2');px(x+13,y+11,3,3,'#fff0c8')}
  }
- for(const [x,y] of [[255,246],[665,238],[738,211]]){
-  oval(x,y,13,5,'#4d9d69','#337b69',1);oval(x+4,y-2,3,3,'#e9b7d2');
+ // Layered mountains and wooded horizon.
+ shape([[0,84],[80,46],[159,74],[243,36],[342,77],[453,38],[565,79],[685,41],[793,76],[900,47],[900,135],[0,135]],'#709b85');
+ shape([[0,112],[80,81],[169,112],[268,75],[360,115],[469,76],[569,111],[680,78],[790,110],[900,81],[900,152],[0,152]],'#4e8976');
+ for(let i=0;i<35;i++){const x=i*29-10,y=103+(i*17)%25;px(x,y-17,7,25,'#416d5c');shape([[x-13,y],[x+3,y-42],[x+19,y]],'#3c7b62')}
+ // Irregular lake with dark shoreline, shallows and bright water.
+ const shore=[[82,148],[154,113],[282,115],[390,104],[516,119],[665,109],[785,139],[836,186],[817,247],[755,279],[643,281],[550,272],[460,288],[347,278],[247,289],[130,273],[73,229],[61,187]];
+ shape(shore,'#456d69','#375b57',5);
+ shape([[95,155],[161,126],[282,130],[390,117],[518,133],[662,124],[777,153],[819,191],[801,240],[748,265],[638,267],[547,257],[458,273],[348,264],[244,274],[139,259],[88,224],[77,185]],'#5d9f9e');
+ shape([[111,161],[172,140],[289,141],[392,129],[520,146],[658,136],[760,162],[800,195],[782,231],[731,251],[631,255],[541,247],[456,260],[345,250],[246,260],[150,245],[104,216],[93,184]],'#78b6b2');
+ for(let i=0;i<36;i++){const x=130+(i*83)%645,y=151+(i*37)%97;px(x+Math.sin(s.tick*.018+i)*4,y,13+(i%3)*6,2,i%4===0?'#d0e7c9':'#95cbc5')}
+ for(const [x,y] of [[195,232],[645,231],[721,211]]){leaf(x,y,13,'#438e6b');px(x+3,y-3,5,4,'#d8b7bc')}
+ // Soft path edged with soil and pale sandy highlights.
+ ctx.lineCap='round';ctx.lineJoin='round';
+ const path=()=>{ctx.beginPath();ctx.moveTo(413,615);ctx.bezierCurveTo(426,542,479,478,488,436);ctx.bezierCurveTo(504,391,513,367,496,344)};
+ ctx.strokeStyle='#8b795a';ctx.lineWidth=52;path();ctx.stroke();
+ ctx.strokeStyle='#d6b786';ctx.lineWidth=45;path();ctx.stroke();
+ ctx.strokeStyle='#e7d1a1';ctx.lineWidth=30;path();ctx.stroke();
+ for(let i=0;i<30;i++){const x=420+(i*37)%88,y=360+(i*59)%240;px(x,y,3+(i%3),2,'#b79b74')}
+ // Detailed tufts, stones, mushrooms and tiny meadow flowers.
+ for(let i=0;i<115;i++){const x=(i*137+47)%W,y=298+(i*83)%300;
+  if(x>382&&x<542&&y>344)continue;
+  px(x,y,3,8,'#568f54');px(x-5,y+3,3,5,'#649c58');px(x+5,y+4,3,4,'#b0d084');
+  if(i%8===0){px(x+5,y-5,5,5,i%3?'#f6e6a8':'#e9c2d3');px(x+7,y-3,2,2,'#c89566')}
+  if(i%11===0){px(x-10,y+7,9,5,'#9e9b83');px(x-8,y+6,4,2,'#c4c1a0')}
  }
- ctx.restore();
- // Shoreline and two gentle grass tones.
- shape([[0,308],[112,294],[217,313],[330,292],[465,311],[591,294],[730,307],[900,288],[900,600],[0,600]],'#a8df69',null);
- shape([[0,485],[110,467],[220,487],[348,472],[500,495],[650,472],[785,493],[900,473],[900,600],[0,600]],'#bde989',null);
- // Small shaded grass clusters and wildflowers, placed consistently each frame.
- for(let i=0;i<140;i++){
-  const x=(i*173+37)%W,y=320+(i*89)%277;
-  if(x>385&&x<540&&y>360)continue;
-  ctx.strokeStyle=i%2?'#5eaa68':'#78ba72';ctx.lineWidth=2;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-7);ctx.moveTo(x,y);ctx.lineTo(x,y-10);ctx.moveTo(x+5,y);ctx.lineTo(x+8,y-7);ctx.stroke();
-  if(i%11===0){oval(x+4,y-10,3,3,i%3?'#f8df9b':'#f8c7d6');oval(x+4,y-10,1,1,'#d29e65')}
- }
- // Soft grassy texture, pebbles and tiny flowers (deterministic placement).
- for(let i=0;i<115;i++){
-  const x=(i*173+37)%W,y=316+(i*89)%277;
-  ctx.strokeStyle=i%3===0?'#7bbd58':'#96d477';ctx.lineWidth=1.4;
-  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y-6);ctx.moveTo(x,y);ctx.lineTo(x+3,y-5);ctx.stroke();
-  if(i%13===0){oval(x+9,y,3,2,'#a8a89a');oval(x+13,y-2,2,1,'#e5e1c7')}
-  if(i%17===0){oval(x,y-8,3,3,i%2?'#fff2bd':'#e8c1f0','#6ca65b',.6)}
- }
- // One modest winding footpath through the clearing.
- ctx.strokeStyle='#e6d39b';ctx.lineWidth=43;ctx.lineCap='round';ctx.lineJoin='round';
- ctx.beginPath();ctx.moveTo(410,600);ctx.quadraticCurveTo(450,500,490,458);ctx.quadraticCurveTo(545,408,506,355);ctx.stroke();
- ctx.strokeStyle='rgba(255,246,206,.55)';ctx.lineWidth=12;ctx.stroke();
- for(let i=0;i<18;i++){const x=400+(i*37)%120,y=360+(i*43)%235;oval(x,y,2+(i%3),1.5,'rgba(143,116,76,.38)')}
- // Trees frame the clearing rather than filling the walkable space.
- [[36,169,.85,0],[80,352,.95,1],[39,540,.85,0],[165,574,.8,0],
-  [847,156,.85,1],[872,344,.9,0],[838,552,.95,0],[726,568,.8,1],
-  [255,80,.6,1],[638,82,.6,0]].forEach(t=>cartoonTree(...t));
- // A few low grass tufts and flowers.
- for(let i=0;i<36;i++){
-  const x=(i*137+47)%W,y=320+(i*83)%270;
-  if((x>365&&x<560&&y>370)||(x>675&&x<785&&y>400))continue;
-  ctx.strokeStyle='#6cb35c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-8,y-8);ctx.moveTo(x,y);ctx.lineTo(x,y-11);ctx.moveTo(x+5,y);ctx.lineTo(x+8,y-8);ctx.stroke();
- }
- // Existing interactable objects retain their IDs and positions.
+ // Rich clustered canopy sprites and grounding shadows.
+ const tree=(x,y,z=1,pine=false)=>{
+  ctx.save();ctx.translate(x,y);ctx.scale(z,z);
+  leaf(0,19,36,'rgba(46,78,48,.25)');
+  px(-9,-34,18,59,'#654d3b');px(-4,-29,5,45,'#a27a50');px(5,-18,3,32,'#493f34');
+  if(pine){for(const [dy,r] of [[-65,23],[-44,31],[-22,37]]){shape([[-r,dy+19],[0,dy-29],[r,dy+19]],'#346f5e');shape([[-r+9,dy+10],[-4,dy-21],[8,dy+10]],'#579a77')}}
+  else{for(const [dx,dy,r] of [[-24,-47,29],[22,-50,31],[0,-75,35],[-7,-35,33]]){
+   leaf(dx+3,dy+7,r+3,'#326c4f');leaf(dx,dy,r,'#4d9660');leaf(dx-7,dy-8,r*.72,'#78b773');
+   px(dx-12,dy-15,9,4,'#a7d38a');px(dx+8,dy-3,7,3,'#387e57')
+  }}
+  ctx.restore();
+ };
+ for(const t of [[38,179,.9,0],[80,359,.9,1],[39,551,.9,0],[159,582,.82,0],[851,164,.9,1],[875,346,.9,0],[844,560,.9,0],[733,574,.82,1],[260,95,.62,1],[642,97,.62,0]])tree(...t);
+ const bush=(x,y,berries=true)=>{
+  leaf(x,y+12,31,'#315f48');leaf(x-13,y-5,24,'#3c8054');leaf(x+13,y-7,23,'#4a935b');leaf(x,y-17,20,'#6eb16a');
+  for(let i=0;i<9;i++){const bx=x-22+(i*17)%45,by=y-16+(i*13)%28;px(bx,by,6,6,berries?'#c94e65':'#b98c54');px(bx+1,by,2,2,'#f1b3a1')}
+ };
  for(const o of objects){
-  if(o.kind==='berry')berryBush(o.x,o.y);
-  if(o.kind==='apple'){cartoonTree(o.x,o.y,.72,0);for(const [dx,dy] of [[-12,-25],[11,-34],[0,-45]])oval(o.x+dx,o.y+dy,5,5,'#e74f48','#843c37',1)}
-  if(o.kind==='carrot'){for(const dx of [-15,0,15]){oval(o.x+dx,o.y+7,6,10,'#ed8c38','#b65d27',1);ctx.strokeStyle='#3d9858';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x+dx,o.y+2);ctx.lineTo(o.x+dx-4,o.y-9);ctx.moveTo(o.x+dx,o.y+2);ctx.lineTo(o.x+dx+5,o.y-8);ctx.stroke()}}
-  if(o.kind==='nuts'){berryBush(o.x,o.y);for(const dx of [-12,1,13])oval(o.x+dx,o.y+5,5,6,'#b9814d','#775337',1)}
-  if(o.kind==='pond'){oval(o.x,o.y,23,11,'#6ac9eb','#408eab',2)}
-  if(o.kind==='stone')oval(o.x,o.y,20,14,'#9fa4ba');
-  if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let angle=i*Math.PI*2/5;oval(o.x+Math.cos(angle)*8,o.y+Math.sin(angle)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
-  if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
-  if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
-  if(o.kind==='book'){ctx.save();ctx.translate(o.x,o.y);ctx.fillStyle='#46516b';ctx.strokeStyle='#26374a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-19,-19,38,29,3);ctx.fill();ctx.stroke();ctx.fillStyle='#8bd9ec';ctx.fillRect(-15,-15,30,21);ctx.fillStyle='#f5d985';ctx.fillRect(-7,-9,14,3);ctx.fillStyle='#8999ac';ctx.beginPath();ctx.moveTo(-22,12);ctx.lineTo(22,12);ctx.lineTo(17,18);ctx.lineTo(-17,18);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
-  // Keep the original object labels visible and legible over the landscape.
-  ctx.save();ctx.font='600 12px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-  const labelY=o.y+(o.kind==='tree'?43:34),width=ctx.measureText(o.label).width+16;
-  ctx.fillStyle='rgba(37,61,53,.83)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-11,width,22,6);ctx.fill();
-  ctx.fillStyle='#fff9e8';ctx.fillText(o.label,o.x,labelY);ctx.restore();
+  if(o.kind==='berry')bush(o.x,o.y);
+  if(o.kind==='nuts')bush(o.x,o.y,false);
+  if(o.kind==='apple'){tree(o.x,o.y,.76);for(const [dx,dy] of [[-20,-42],[14,-56],[2,-70],[26,-29]]){px(o.x+dx,o.y+dy,10,10,'#c7514c');px(o.x+dx+2,o.y+dy+1,3,3,'#f3a07d')}}
+  if(o.kind==='carrot'){px(o.x-27,o.y+7,57,12,'#9b7c57');for(const dx of [-16,0,16]){px(o.x+dx-4,o.y,9,16,'#db8242');px(o.x+dx-1,o.y-11,4,13,'#4b9b56');px(o.x+dx+3,o.y-7,4,8,'#78b86c')}}
+  if(o.kind==='pond'){leaf(o.x,o.y,22,'#4e9a9e');leaf(o.x-4,o.y-3,12,'#84c6c2')}
+  if(o.kind==='stone'){leaf(o.x,o.y+6,22,'#596d72');leaf(o.x-3,o.y,18,'#a1a9a4');px(o.x-10,o.y-6,14,3,'#d1d0bc')}
+  if(o.kind==='flower'){px(o.x-2,o.y,4,17,'#498e56');for(const [dx,dy] of [[0,-11],[-9,-3],[9,-3],[0,5]])leaf(o.x+dx,o.y+dy,7,'#f8e5e5');leaf(o.x,o.y-2,5,'#e9bd6e')}
+  if(o.kind==='tree')tree(o.x,o.y,.75);
+  if(o.kind==='mushroom'){px(o.x-4,o.y-3,9,15,'#eee2c6');leaf(o.x,o.y-7,19,'#ba666a');px(o.x-8,o.y-14,5,4,'#f8dfc4');px(o.x+7,o.y-11,5,4,'#f8dfc4')}
+  if(o.kind==='book'){px(o.x-21,o.y+10,43,7,'#5a5d60');px(o.x-17,o.y-19,35,30,'#414e61');px(o.x-13,o.y-15,27,22,'#8fc9c2');px(o.x-8,o.y-9,16,4,'#e5d5a0');px(o.x-24,o.y+16,49,4,'#a9a69b')}
+  ctx.save();ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  const ly=o.y+(o.kind==='tree'?43:35),tw=ctx.measureText(o.label).width+16;
+  ctx.fillStyle='rgba(35,54,45,.88)';ctx.beginPath();ctx.roundRect(o.x-tw/2,ly-11,tw,22,5);ctx.fill();
+  ctx.fillStyle='#fff5dc';ctx.fillText(o.label,o.x,ly);ctx.restore();
  }
  // Match the visitor's real local clock; approximate dawn at 06:00 and dusk at 18:00.
  const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
