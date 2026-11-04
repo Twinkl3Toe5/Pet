@@ -258,6 +258,8 @@ function berryBush(x,y){
  oval(x,y,29,20,'#399b5b');oval(x-14,y-8,17,15,'#56bb62');oval(x+12,y-8,19,17,'#5dbd60');
  for(let i=0;i<5;i++){const bx=x-19+(i*17)%39,by=y-13+(i*11)%21;oval(bx,by,5,5,'#f05b6d','#3a4d47',1.5)}
 }
+function dayPhase(){return (s.tick%2400)/2400}
+function timeLabel(){const h=Math.floor(dayPhase()*24);return String(h).padStart(2,'0')+':'+String(Math.floor(dayPhase()*1440)%60).padStart(2,'0')}
 function draw(){
  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=true;
  // Quiet lakeside clearing inspired by the simplicity of classic handheld RPG lakes.
@@ -302,6 +304,21 @@ function draw(){
   ctx.fillStyle='rgba(25,49,59,.86)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-12,width,24,8);ctx.fill();
   ctx.fillStyle='#fff9e8';ctx.fillText(o.label,o.x,labelY);ctx.restore();
  }
+ // Eight-minute in-world day: dawn, daylight, dusk and night.
+ const phase=dayPhase(), sunlight=(Math.cos((phase-.5)*Math.PI*2)+1)/2;
+ const darkness=Math.pow(1-sunlight,1.5)*.68;
+ if(darkness>.01){ctx.fillStyle='rgba(9,17,52,'+darkness.toFixed(3)+')';ctx.fillRect(0,0,W,H)}
+ // Sun and moon cross the sky at different times.
+ const angle=phase*Math.PI*2-Math.PI/2;
+ const celestialX=W/2+Math.cos(angle)*360,celestialY=82-Math.sin(angle)*48;
+ if(sunlight>.42){oval(celestialX,Math.max(18,celestialY),17,17,'#ffe9a0')}
+ else{oval(celestialX,Math.max(18,celestialY),14,14,'#f1f2d9')}
+ if(darkness>.2){
+  ctx.fillStyle='rgba(255,255,225,'+Math.min(.85,darkness*1.4)+')';
+  for(let i=0;i<36;i++){const x=(i*137+39)%W,y=8+(i*47)%72;ctx.fillRect(x,y,2,2)}
+ }
+ ctx.save();ctx.font='bold 15px system-ui';ctx.textAlign='left';ctx.fillStyle='#fff9e8';
+ ctx.fillText(timeLabel()+' · '+(sunlight>.72?'Day':sunlight>.32?(phase<.5?'Morning':'Evening'):'Night'),18,27);ctx.restore();
  // PET: a friendly, original anthropomorphic handheld game console.
  // Bob and swinging limbs give a walking animation without changing AI movement.
  ctx.save();ctx.translate(s.x,s.y);
