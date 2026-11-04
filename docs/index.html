@@ -17,7 +17,8 @@ const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world
 const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'}];
 const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
 let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
-if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];\nlet paused=false;
+if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];
+let paused=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
 function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40)}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
@@ -57,15 +58,15 @@ function draw(){
 
 function petReply(message){
  const q=message.toLowerCase(),found=s.discoveries.map(id=>objects.find(o=>o.id===id)?.label).filter(Boolean);
- if(/\\b(hello|hi|hey|hiya)\\b/.test(q))return 'Hello again! It’s nice when you visit.';
- if(/\\b(name|who are you)\\b/.test(q))return 'I’m PET. I don’t know much about myself yet, but I’m learning about this place.';
- if(/\\b(how are you|you okay|feeling)\\b/.test(q))return s.energy<30?'A little tired, honestly. I think I need to rest.':s.hunger>70?'I’m doing alright, but I could really do with some food.':'I feel curious today. There’s still so much to notice.';
- if(/\\b(hungry|food|eat)\\b/.test(q))return s.hunger>55?'Yes, I’m getting hungry. I remember the berry bushes.':'Not especially hungry right now. I’ll look for food when I need it.';
- if(/\\b(tired|sleep|rest)\\b/.test(q))return s.energy<45?'I am tired. I’ll find somewhere quiet to rest.':'I’m not too tired yet. I want to keep looking around.';
- if(/\\b(explore|discover|interesting|world)\\b/.test(q))return found.length?'I’ve found '+found.join(', ')+'. I wonder what else is out there.':'I haven’t discovered anything yet. I’m going to have a look around.';
- if(/\\b(what have you found|discoveries|remember)\\b/.test(q))return found.length?'I remember '+found.join(', ')+'.':'Not much yet. Everything is still new to me.';
- if(/\\b(love you|good pet|well done|good job)\\b/.test(q))return 'That makes me feel a little more comfortable. Thank you.';
- if(/\\b(bye|goodbye|see you)\\b/.test(q))return 'See you later. I’ll keep exploring while you’re away.';
+ if(/\b(hello|hi|hey|hiya)\b/.test(q))return 'Hello again! It’s nice when you visit.';
+ if(/\b(name|who are you)\b/.test(q))return 'I’m PET. I don’t know much about myself yet, but I’m learning about this place.';
+ if(/\b(how are you|you okay|feeling)\b/.test(q))return s.energy<30?'A little tired, honestly. I think I need to rest.':s.hunger>70?'I’m doing alright, but I could really do with some food.':'I feel curious today. There’s still so much to notice.';
+ if(/\b(hungry|food|eat)\b/.test(q))return s.hunger>55?'Yes, I’m getting hungry. I remember the berry bushes.':'Not especially hungry right now. I’ll look for food when I need it.';
+ if(/\b(tired|sleep|rest)\b/.test(q))return s.energy<45?'I am tired. I’ll find somewhere quiet to rest.':'I’m not too tired yet. I want to keep looking around.';
+ if(/\b(explore|discover|interesting|world)\b/.test(q))return found.length?'I’ve found '+found.join(', ')+'. I wonder what else is out there.':'I haven’t discovered anything yet. I’m going to have a look around.';
+ if(/\b(what have you found|discoveries|remember)\b/.test(q))return found.length?'I remember '+found.join(', ')+'.':'Not much yet. Everything is still new to me.';
+ if(/\b(love you|good pet|well done|good job)\b/.test(q))return 'That makes me feel a little more comfortable. Thank you.';
+ if(/\b(bye|goodbye|see you)\b/.test(q))return 'See you later. I’ll keep exploring while you’re away.';
  return ['I’m not quite sure what you mean, but I’m listening.','That’s interesting. I’ll have to think about it.','I don’t know much yet. Maybe I’ll understand more as I explore.','I like having someone to talk to.'][s.tick%4];
 }
 function addDialogue(from,text){
@@ -80,7 +81,8 @@ document.getElementById('chatform').addEventListener('submit',e=>{
  e.preventDefault();const input=document.getElementById('chatinput'),message=input.value.trim();if(!message)return;
  addDialogue('you',message);input.value='';addDialogue('pet',petReply(message));
 });
-\nfunction render(){
+
+function render(){
  draw();renderDialogue();document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':'Alive · browser simulation';
  const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
  document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
