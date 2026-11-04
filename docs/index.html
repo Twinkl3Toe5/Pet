@@ -47,16 +47,47 @@ const scenery=[
  [56,280,.85],[125,340,1.05],[220,365,.85],[585,405,.95],[795,330,1.05],[850,490,.85],[82,545,.9],[390,535,.85]
 ];
 function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
-function pine(x,y,size=1){
- ctx.save();ctx.translate(x,y);ctx.scale(size,size);
- ctx.fillStyle='#4c372b';ctx.fillRect(-6,6,12,29);
- polygon([[-32,9],[0,-53],[32,9]],'#173c36');
- polygon([[-35,20],[0,-31],[35,20]],'#23584a');
- polygon([[-29,-1],[0,-46],[29,-1]],'#347a58');
- polygon([[-17,-20],[0,-51],[17,-20]],'#53a46d');
- ctx.fillStyle='#75b982';ctx.fillRect(-8,-32,8,5);ctx.fillRect(13,1,9,5);
+// Tree silhouettes based on the supplied retro sprite-sheet reference.
+function tree(x,y,size=1,variant=0){
+ ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(size,size);
+ const v=((variant%5)+5)%5;
+ // Deliberately hard-edged, low-resolution pixel shapes: no canvas smoothing.
+ ctx.fillStyle='#53392e';ctx.fillRect(-5,-3,10,34);
+ ctx.fillStyle='#9d6b40';ctx.fillRect(-3,0,3,28);
+ if(v===4){
+   // Leafless winter tree, with crooked branches.
+   const branches=[[0,2,-17,-17],[-9,-10,-22,-31],[0,-9,15,-32],[8,-17,25,-21],[2,-23,-5,-45],[-14,-20,-26,-17],[13,-28,21,-43]];
+   ctx.strokeStyle='#533b33';ctx.lineWidth=5;ctx.lineCap='square';
+   for(const [x1,y1,x2,y2] of branches){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+   ctx.strokeStyle='#ae8062';ctx.lineWidth=2;
+   for(const [x1,y1,x2,y2] of branches.slice(0,4)){ctx.beginPath();ctx.moveTo(x1+1,y1);ctx.lineTo(x2+1,y2);ctx.stroke()}
+ }else if(v===3){
+   // Layered fir, bright lime highlights and dark blue-green shadow.
+   for(let i=0;i<5;i++){
+     const yy=-56+i*12,half=9+i*6;
+     polygon([[-half,yy+17],[0,yy-9],[half,yy+17]],'#1d6256');
+     polygon([[-half+4,yy+10],[0,yy-8],[half-7,yy+10]],i%2?'#6dbb55':'#87cc58');
+     ctx.fillStyle='#b7dc67';ctx.fillRect(-3,yy+2,6,3);
+     ctx.fillStyle='#328b80';ctx.fillRect(half-9,yy+12,6,4);
+   }
+ }else{
+   // Rounded, irregular broadleaf crowns in three reference-inspired shades.
+   const palettes=[
+     ['#215d56','#50aa70','#9fd66d','#d5e67d'],
+     ['#246d61','#6fbe63','#b8d866','#e4e982'],
+     ['#357c5d','#92c65c','#c6da69','#e8e68b']
+   ],p=palettes[v];
+   polygon([[-31,-20],[-35,-34],[-26,-45],[-18,-49],[-12,-59],[4,-63],[15,-56],[25,-54],[32,-41],[34,-27],[27,-14],[11,-9],[-5,-12],[-18,-9]],p[0]);
+   polygon([[-31,-32],[-25,-47],[-12,-52],[-4,-61],[12,-58],[23,-48],[30,-35],[23,-21],[10,-16],[-5,-20],[-19,-16]],p[1]);
+   polygon([[-25,-38],[-17,-51],[-4,-55],[7,-59],[17,-51],[23,-41],[17,-30],[5,-29],[-6,-23],[-18,-29]],p[2]);
+   polygon([[-19,-44],[-8,-54],[4,-56],[14,-49],[10,-38],[-2,-36],[-11,-31]],p[3]);
+   ctx.fillStyle=p[0];ctx.fillRect(-30,-25,8,6);ctx.fillRect(19,-17,8,6);
+   ctx.fillStyle=p[3];ctx.fillRect(-21,-47,8,5);ctx.fillRect(7,-54,8,5);
+   ctx.fillStyle=p[1];ctx.fillRect(13,-28,9,6);ctx.fillRect(-12,-18,7,5);
+ }
  ctx.restore();
 }
+function pine(x,y,size=1){tree(x,y,size,3)}
 function tileBush(x,y){
  ctx.fillStyle='#163f33';ctx.fillRect(x-20,y-12,40,27);
  for(let i=0;i<5;i++){let xx=x-15+i*8;polygon([[xx-5,y-3],[xx,y-16-(i%2)*4],[xx+7,y-2],[xx+4,y+7]],i%2?'#2e8455':'#4da76a')}
@@ -95,7 +126,7 @@ function draw(){
  // Tall grass patches
  for(let k=0;k<4;k++){const [bx,by]=[[245,295],[500,420],[615,490],[565,250]][k];for(let i=0;i<20;i++){const x=bx+(i%5)*15,y=by+Math.floor(i/5)*13;polygon([[x-6,y+9],[x-6,y-4],[x,y+1],[x+4,y-8],[x+9,y+9]],i%2?'#348b50':'#237044')}}
  // Forest trees
- scenery.forEach(([x,y,z])=>pine(x,y,z));
+ scenery.forEach(([x,y,z],i)=>tree(x,y,z,[0,1,2,3,0,1,3,2,4][i%9]));
  // Pixel scenery details
  for(let i=0;i<85;i++){const x=(i*131+63)%W,y=160+(i*73)%(H-170);if((x>700&&y>310)||(x<220&&y>430))continue;ctx.fillStyle=i%2?'#e9e7aa':'#f2d6e4';ctx.fillRect(x,y,4,4);ctx.fillStyle='#36874a';ctx.fillRect(x+2,y+4,2,5)}
  // World objects stay in their original positions so PET's AI is unaffected
@@ -109,7 +140,7 @@ function draw(){
  polygon([[-20,12],[-17,-8],[-3,-20],[17,-13],[23,8],[10,17]],'#586a71');polygon([[-16,-8],[-3,-20],[17,-13],[4,-1],[-12,1]],'#abb8b7');
  }else if(o.kind==='flower'){
  ctx.fillStyle='#287c42';ctx.fillRect(-2,0,4,17);for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle='#f5a4c9';ctx.fillRect(Math.round(Math.cos(a)*9)-5,Math.round(Math.sin(a)*9)-5,10,10)}ctx.fillStyle='#f5d878';ctx.fillRect(-5,-5,10,10);
- }else if(o.kind==='tree'){pine(0,10,.75)}
+ }else if(o.kind==='tree'){tree(0,10,.75,1)}
  else if(o.kind==='mushroom'){ctx.fillStyle='#f7e6bc';ctx.fillRect(-5,0,10,16);polygon([[-17,2],[-11,-12],[10,-12],[17,2]],'#bf555d');ctx.fillStyle='#ffe5cf';ctx.fillRect(-5,-9,6,4)}
  ctx.restore();
  ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#203a32';ctx.strokeText(o.label,o.x,o.y+42);ctx.fillStyle='#fff8e6';ctx.fillText(o.label,o.x,o.y+42);
