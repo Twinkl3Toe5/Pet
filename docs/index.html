@@ -164,6 +164,11 @@ function draw(){
   if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let angle=i*Math.PI*2/5;oval(o.x+Math.cos(angle)*8,o.y+Math.sin(angle)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
   if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
   if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
+  // Keep the original object labels visible and legible over the landscape.
+  ctx.save();ctx.font='bold 13px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  const labelY=o.y+(o.kind==='tree'?40:32),width=ctx.measureText(o.label).width+18;
+  ctx.fillStyle='rgba(25,49,59,.86)';ctx.beginPath();ctx.roundRect(o.x-width/2,labelY-12,width,24,8);ctx.fill();
+  ctx.fillStyle='#fff9e8';ctx.fillText(o.label,o.x,labelY);ctx.restore();
  }
  // PET: a friendly, original anthropomorphic handheld game console.
  // Bob and swinging limbs give a walking animation without changing AI movement.
