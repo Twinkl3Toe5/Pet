@@ -326,7 +326,7 @@ function render(){
  document.getElementById('discoveries').innerHTML=s.discoveries.map(id=>'<span class="chip">'+(objects.find(o=>o.id===id)?.label||id)+'</span>').join('')||'<span class="muted">Nothing yet. The world is new.</span>';
  document.getElementById('events').innerHTML=s.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('');
 }
-document.getElementById('nameform').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('petname').value.trim().replace(/\\s+/g,' ').slice(0,24);if(!name)return;s.name=name;save();render()});
+document.getElementById('nameform').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('petname').value.trim().replace(/\s+/g,' ').slice(0,24);if(!name)return;s.name=name;save();render()});
 document.getElementById('pause').onclick=()=>{paused=!paused;document.getElementById('pause').textContent=paused?'Resume':'Pause';render()};
 document.getElementById('reset').onclick=()=>{if(confirm('Start a new creature? This clears this browser’s saved PET world.')){s=fresh();save();render()}};
 render();setInterval(()=>{if(!paused)step()},1000);
