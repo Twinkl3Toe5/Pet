@@ -10,13 +10,13 @@
 <section class="panel"><h2>Meet your PET</h2><form id="nameform" class="chatform" style="margin-bottom:12px"><input id="petname" maxlength="24" placeholder="Give your PET a name…" aria-label="PET name"><button type="submit">Save name</button></form><small class="muted" id="personality">Personality developing…</small></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
-<section class="panel"><h2>What PET has learned</h2><div class="chips" id="facts">No book facts yet.</div><small class="muted">PET remembers facts after reading the nature book.</small></section>
+<section class="panel"><h2>What PET has learned</h2><div class="chips" id="facts">No research facts yet.</div><small class="muted">PET remembers facts after reading the research laptop.</small></section>
 <section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
 <section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
 </main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
 <script>
 const W=900,H=600,KEY='pet-pages-state-v1',canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Nature book'}];
+const objects=[{id:'berry1',kind:'berry',x:170,y:160,label:'Berry bush'},{id:'berry2',kind:'berry',x:700,y:430,label:'Berry bush'},{id:'pond',kind:'pond',x:450,y:300,label:'Pond'},{id:'stone',kind:'stone',x:300,y:430,label:'Strange stone'},{id:'flower',kind:'flower',x:670,y:150,label:'Wildflower'},{id:'tree',kind:'tree',x:100,y:450,label:'Old tree'},{id:'mushroom',kind:'mushroom',x:520,y:100,label:'Mushroom'},{id:'book',kind:'book',x:590,y:465,label:'Research laptop'}];
 const fresh=()=>({tick:0,x:430,y:280,energy:85,hunger:20,curiosity:75,comfort:70,knowledge:0,discoveries:[],learned:{},events:[{tick:0,kind:'birth',message:'A new little creature opened its eyes. The world is unfamiliar.'}],name:'PET',personality:{lake:0,shade:0,flowers:0,stones:0,mushrooms:0,berries:0,shore:0},dialogue:[{from:'pet',text:'Hello. I’m still figuring this place out. Who are you?',tick:0}]});
 let s;try{s=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{s=fresh()}
 if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still figuring this place out.',tick:s.tick||0}];
@@ -28,7 +28,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){documen
 function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40)}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
-const bookFacts=[
+const researchFacts=[
  {topic:'jellyfish',fact:'Jellyfish have no brain, heart or bones.'},
  {topic:'jellyfish',fact:'Some jellyfish can glow with bioluminescence.'},
  {topic:'octopuses',fact:'An octopus has three hearts.'},
@@ -40,7 +40,19 @@ const bookFacts=[
  {topic:'butterflies',fact:'Butterflies taste with sensors on their feet.'},
  {topic:'lakes',fact:'Lakes can form when glaciers carve depressions in the ground.'},
  {topic:'otters',fact:'Sea otters sometimes use rocks to open shellfish.'},
- {topic:'birds',fact:'Some migrating birds navigate using Earth’s magnetic field.'}
+ {topic:'birds',fact:'Some migrating birds navigate using Earth’s magnetic field.'},
+ {topic:'computers',fact:'Computers use binary digits, called bits, to represent information.'},
+ {topic:'robots',fact:'Robots use sensors to gather information about their surroundings.'},
+ {topic:'music',fact:'Sound is made by vibrations travelling through a medium.'},
+ {topic:'history',fact:'The ancient Romans built roads across much of Europe.'},
+ {topic:'geography',fact:'The Pacific Ocean is the largest ocean on Earth.'},
+ {topic:'mathematics',fact:'Prime numbers have exactly two positive divisors.'},
+ {topic:'space',fact:'Saturn has rings made mostly of ice particles and rocky debris.'},
+ {topic:'engineering',fact:'Bridges can distribute weight using arches, beams or cables.'},
+ {topic:'language',fact:'Languages evolve as people use and change them over generations.'},
+ {topic:'art',fact:'Artists can create depth using perspective and overlapping shapes.'},
+ {topic:'weather',fact:'Rainbows appear when light is refracted and reflected inside water droplets.'},
+ {topic:'dinosaurs',fact:'Birds are the surviving descendants of theropod dinosaurs.'}
 ];
 function step(){
  s.tick++;s.hunger=Math.min(100,s.hunger+.12);s.energy=Math.max(0,s.energy-.28);
@@ -61,7 +73,7 @@ function step(){
    {id:'mushrooms',object:'mushroom',name:'studying the mushroom'},
    {id:'berries',object:'berry2',name:'checking whether the berries have grown'},
    {id:'shore',object:'pond',name:'looking for movement in the water'},
-   {id:'reading',object:'book',name:'reading the nature encyclopedia'}
+   {id:'reading',object:'book',name:'researching whatever interests me'}
   ];
   const sorted=options.map(o=>({...o,last:s.activities[o.id]||-9999,affinity:s.personality[o.id]||0}))
    .sort((a,b)=>a.last-b.last);
@@ -91,7 +103,7 @@ function step(){
   if(dist(s,t)<22){
    s.discoveries.push(t.id);s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
-   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A book full of facts about nature! I can come back and read it.'};
+   const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
   }else{move(t,2.3);msg='Something unfamiliar caught my attention.'}
  }else{
@@ -107,7 +119,7 @@ function step(){
    mushrooms:{object:'mushroom',distance:28,curiosity:2,thoughts:['I should observe this mushroom, not eat it.','The mushroom seems a little different today.','Perhaps it grows after rain.']},
    berries:{object:'berry2',distance:29,comfort:.6,thoughts:['I should remember where the best berries grow.','The bush looks healthy.','Maybe the berries will ripen soon.']},
    shore:{object:'pond',distance:65,comfort:1,curiosity:1.5,thoughts:['Was that a fish?','There are little ripples near the shore.','I could sit here and listen to the lake.']},
-   reading:{object:'book',distance:28,curiosity:3,energy:-.4,thoughts:['I love learning about the natural world.','This book has so many interesting things in it.']}
+   reading:{object:'book',distance:28,curiosity:3,energy:-.4,thoughts:['I wonder what I can learn next.','There are so many subjects to investigate.']}
   };
   const activity=activities[s.activityTarget]||activities.lake;
   const t=objects.find(o=>o.id===activity.object);
@@ -122,9 +134,13 @@ function step(){
     msg=activity.thoughts[count%activity.thoughts.length];kind='activity';
     if(activity.knowledge&&count%4===0){s.knowledge++;msg+=' I learned something new.'}
     if(s.activityTarget==='reading'){
-     const unread=bookFacts.filter(f=>!s.facts.some(k=>k.fact===f.fact));
-     if(unread.length){const fact=unread[Math.floor(Math.random()*unread.length)];s.facts.push(fact);s.knowledge++;msg='I read about '+fact.topic+'! '+fact.fact;kind='learning'}
-     else{const fact=bookFacts[Math.floor(Math.random()*bookFacts.length)];msg='I remember reading that '+fact.fact;kind='learning'}
+     const unread=researchFacts.filter(f=>!s.facts.some(k=>k.fact===f.fact));
+     const interests={lake:['lakes','jellyfish','frogs','weather'],shore:['jellyfish','octopuses','lakes'],flowers:['bees','butterflies','art'],shade:['trees','birds','weather'],stones:['geography','engineering','history'],mushrooms:['mushrooms','biology'],berries:['bees','trees'],reading:['computers','robots','space','mathematics']};
+     const favorite=Object.entries(s.personality).sort((a,b)=>b[1]-a[1])[0]?.[0]||'reading';
+     const preferred=unread.filter(f=>(interests[favorite]||[]).includes(f.topic));
+     const pool=preferred.length&&Math.random()<.65?preferred:unread;
+     if(pool.length){const fact=pool[Math.floor(Math.random()*pool.length)];s.facts.push(fact);s.knowledge++;msg='I researched '+fact.topic+'! '+fact.fact;kind='learning'}
+     else{const fact=researchFacts[Math.floor(Math.random()*researchFacts.length)];msg='I remember learning that '+fact.fact;kind='learning'}
     }
     // Each completed activity gradually shapes an individual preference.
     s.personality[s.activityTarget]=Math.min(20,(s.personality[s.activityTarget]||0)+.45);
@@ -260,7 +276,7 @@ function draw(){
   if(o.kind==='flower'){ctx.strokeStyle='#397d58';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x,o.y+12);ctx.lineTo(o.x,o.y);ctx.stroke();for(let i=0;i<5;i++){let angle=i*Math.PI*2/5;oval(o.x+Math.cos(angle)*8,o.y+Math.sin(angle)*8,6,6,'#fff5f5','#43526a',1)}oval(o.x,o.y,5,5,'#f4ce55','#43526a',1)}
   if(o.kind==='tree')cartoonTree(o.x,o.y,.7,0);
   if(o.kind==='mushroom'){oval(o.x,o.y+8,5,12,'#fff0d0');oval(o.x,o.y-3,17,10,'#e96e75')}
-  if(o.kind==='book'){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(-.12);ctx.fillStyle='#8c4fba';ctx.strokeStyle='#28374b';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(-17,-13,34,25,3);ctx.fill();ctx.stroke();ctx.fillStyle='#f5e6ad';ctx.fillRect(-12,-10,3,19);ctx.fillStyle='#e6c765';ctx.fillRect(-2,-7,11,3);ctx.fillRect(-2,-1,8,2);ctx.restore()}
+  if(o.kind==='book'){ctx.save();ctx.translate(o.x,o.y);ctx.fillStyle='#46516b';ctx.strokeStyle='#26374a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-19,-19,38,29,3);ctx.fill();ctx.stroke();ctx.fillStyle='#8bd9ec';ctx.fillRect(-15,-15,30,21);ctx.fillStyle='#f5d985';ctx.fillRect(-7,-9,14,3);ctx.fillStyle='#8999ac';ctx.beginPath();ctx.moveTo(-22,12);ctx.lineTo(22,12);ctx.lineTo(17,18);ctx.lineTo(-17,18);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
   // Keep the original object labels visible and legible over the landscape.
   ctx.save();ctx.font='bold 13px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   const labelY=o.y+(o.kind==='tree'?40:32),width=ctx.measureText(o.label).width+18;
@@ -315,9 +331,9 @@ function petReply(message){
  const q=message.toLowerCase(),found=s.discoveries.map(id=>objects.find(o=>o.id===id)?.label).filter(Boolean);
  if(/\b(hello|hi|hey|hiya)\b/.test(q))return 'Hello again! It’s nice when you visit.';
  if(/\b(book|read|study|learn|knowledge|smart|jellyfish|octopus|bees|facts?)\b/.test(q)){
-  const topic=bookFacts.find(f=>q.includes(f.topic.replace(/s$/,'')))?.topic;
+  const topic=researchFacts.find(f=>q.includes(f.topic.replace(/s$/,'')))?.topic;
   const known=topic?s.facts.filter(f=>f.topic===topic):s.facts;
-  return known.length?'I learned that '+known[(s.tick+known.length)%known.length].fact:'I haven’t learned that yet. There’s a nature book in the clearing I can study!';
+  return known.length?'I learned that '+known[(s.tick+known.length)%known.length].fact:'I haven’t learned that yet. There’s a research laptop in the clearing I can use!';
  }
  if(/\b(name|who are you)\b/.test(q))return 'I’m '+s.name+'! I’m still learning who I am.';
  if(/\b(favourite|favorite|like doing|personality)\b/.test(q)){const likes=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);return likes.length&&likes[0][1]>0?'I think I especially enjoy '+({lake:'watching the lake',shade:'resting under the tree',flowers:'visiting flowers',stones:'examining stones',mushrooms:'studying mushrooms',berries:'checking berries',shore:'exploring the shore'}[likes[0][0]]||'exploring')+'.':'I’m still discovering what I enjoy most.'}
@@ -347,12 +363,12 @@ document.getElementById('chatform').addEventListener('submit',e=>{
 function render(){
  draw();renderDialogue();document.getElementById('petname').value=document.activeElement===document.getElementById('petname')?document.getElementById('petname').value:s.name;
  const ranked=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);
- const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Bookworm'};
+ const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher'};
  document.getElementById('personality').textContent=ranked.length&&ranked[0][1]>0?'Developing personality: '+(labels[ranked[0][0]]||'Explorer')+' · preferences grow through activities':'Personality develops as your PET explores and chooses activities.';
  document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':'Alive · browser simulation';
  const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
  document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
- document.getElementById('facts').innerHTML=s.facts.length?s.facts.map(f=>'<span class="chip" title="'+escapeHtml(f.fact)+'">'+escapeHtml(f.topic)+': '+escapeHtml(f.fact)+'</span>').join(''):'<span class="muted">No book facts yet. PET will learn by reading.</span>';
+ document.getElementById('facts').innerHTML=s.facts.length?s.facts.map(f=>'<span class="chip" title="'+escapeHtml(f.fact)+'">'+escapeHtml(f.topic)+': '+escapeHtml(f.fact)+'</span>').join(''):'<span class="muted">No research facts yet. PET will learn by researching.</span>';
  document.getElementById('discoveries').innerHTML=s.discoveries.map(id=>'<span class="chip">'+(objects.find(o=>o.id===id)?.label||id)+'</span>').join('')||'<span class="muted">Nothing yet. The world is new.</span>';
  document.getElementById('events').innerHTML=s.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('');
 }
