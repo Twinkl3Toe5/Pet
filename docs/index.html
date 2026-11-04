@@ -24,12 +24,12 @@ function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
 function step(){
- s.tick++;s.hunger=Math.min(100,s.hunger+.65);s.energy=Math.max(0,s.energy-.28);s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
- const score={eat:s.hunger*1.25+(s.learned.eat||0),rest:(100-s.energy)*1.2+(s.learned.rest||0),explore:s.curiosity*.65+(s.learned.explore||0)};
+ s.tick++;s.hunger=Math.min(100,s.hunger+.12);s.energy=Math.max(0,s.energy-.28);s.curiosity=Math.min(100,s.curiosity+.12);s.comfort=Math.max(0,s.comfort-.04);
+ const score={eat:s.hunger>=65?150:0,rest:s.energy<35?140:0,explore:30+s.curiosity*.35+Math.min(8,(s.learned.explore||0)*.1)};
  const action=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];let msg='',kind='thought';
  if(action==='eat'){
   const bushes=objects.filter(o=>o.kind==='berry'),t=bushes.sort((a,b)=>dist(s,a)-dist(s,b))[0];
-  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-38);s.learned.eat=(s.learned.eat||0)+1.8;msg='Found berries and ate. That was useful; I should remember this place.';kind='food';if(!s.discoveries.includes(t.id)){s.discoveries.push(t.id);s.knowledge++;msg='Discovery: berries are edible! I have remembered this bush.';kind='discovery'}}
+  if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Found berries and ate. That was useful; I should remember this place.';kind='food';if(!s.discoveries.includes(t.id)){s.discoveries.push(t.id);s.knowledge++;msg='Discovery: berries are edible! I have remembered this bush.';kind='discovery'}}
   else{move(t,2.7);msg='I am hungry. Heading towards the berry bush.'}
  }else if(action==='rest'){
   if(s.energy>96){s.comfort=Math.min(100,s.comfort+.5);s.learned.rest=Math.max(0,(s.learned.rest||0)-.1);msg='Resting quietly and watching the world.'}
