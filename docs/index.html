@@ -87,7 +87,7 @@ function step(){
   const t=bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
   s.activityTarget=null;
   if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate some berries. Feeling much better!';kind='food'}
-  else{move(t,2.7);msg='Feeling hungry. Heading for berries.'}
+  else{move(t,4.32);msg='Feeling hungry. Heading for berries.'}
  }else if(s.energy<35){
   s.activityTarget=null;s.energy=Math.min(100,s.energy+2.1);
   s.comfort=Math.min(100,s.comfort+.25);
@@ -95,7 +95,7 @@ function step(){
  }else if(s.comfort<35){
   const t=objects.find(o=>o.id==='tree');
   s.activityTarget=null;
-  if(dist(s,t)>35){move(t,2.2);msg='Looking for a peaceful spot beneath the tree.'}
+  if(dist(s,t)>35){move(t,3.52);msg='Looking for a peaceful spot beneath the tree.'}
   else{s.comfort=Math.min(100,s.comfort+2.5);s.energy=Math.min(100,s.energy+.15);
    msg='Enjoying the shade. This place feels safe and familiar.';kind='comfort'}
  }else if(unknown.length){
@@ -105,7 +105,7 @@ function step(){
    s.learned.explore=(s.learned.explore||0)+2.2;
    const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
-  }else{move(t,2.3);msg='Something unfamiliar caught my attention.'}
+  }else{move(t,3.68);msg='Something unfamiliar caught my attention.'}
  }else{
   // Once all objects are discovered, PET pursues varied activities rather than looping dialogue.
   if(!s.activityTarget){
@@ -123,7 +123,7 @@ function step(){
   };
   const activity=activities[s.activityTarget]||activities.lake;
   const t=objects.find(o=>o.id===activity.object);
-  if(dist(s,t)>activity.distance){move(t,2.1);msg='Going to spend some time '+(s.activityTarget==='shade'?'under the tree':'by '+t.label.toLowerCase())+'.'}
+  if(dist(s,t)>activity.distance){move(t,3.36);msg='Going to spend some time '+(s.activityTarget==='shade'?'under the tree':'by '+t.label.toLowerCase())+'.'}
   else{
    s.activityProgress=(s.activityProgress||0)+1;
    s.comfort=Math.min(100,s.comfort+(activity.comfort||.1));
