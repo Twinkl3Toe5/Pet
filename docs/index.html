@@ -60,6 +60,8 @@ function step(){
  // Persisted activity state is initialized lazily for existing saves.
  if(!s.activities||typeof s.activities!=='object')s.activities={};
  if(!['lake','shade','flowers','stones','mushrooms','berries','shore','reading'].includes(s.activityTarget))s.activityTarget=null;
+ if(s.discoveryTarget&&!objects.some(o=>o.id===s.discoveryTarget&&!s.discoveries.includes(o.id)))s.discoveryTarget=null;
+ if(s.activityTarget&&s.activityProgress==null)s.activityProgress=0;
  let msg='',kind='thought';
  const bushes=objects.filter(o=>o.kind==='berry');
  const unknown=objects.filter(o=>!s.discoveries.includes(o.id));
@@ -83,25 +85,29 @@ function step(){
   for(let i=0;i<candidates.length;i++){roll-=weights[i];if(roll<=0)return candidates[i]}
   return candidates[candidates.length-1];
  };
- if(s.hunger>=65){
+ // Commit to a destination until the task is finished; only urgent needs interrupt.
+ const busy=!!s.activityTarget||!!s.discoveryTarget;
+ const urgentHunger=s.hunger>=85,urgentEnergy=s.energy<=15;
+ if((!busy&&s.hunger>=65)||urgentHunger){
   const t=bushes.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
-  s.activityTarget=null;
+  s.activityTarget=null;s.discoveryTarget=null;s.activityProgress=0;
   if(dist(s,t)<24){s.hunger=Math.max(0,s.hunger-65);s.learned.eat=Math.min(20,(s.learned.eat||0)+.5);msg='Ate some berries. Feeling much better!';kind='food'}
   else{move(t,4.32);msg='Feeling hungry. Heading for berries.'}
- }else if(s.energy<35){
-  s.activityTarget=null;s.energy=Math.min(100,s.energy+.42);
+ }else if((!busy&&s.energy<35)||urgentEnergy){
+  s.activityTarget=null;s.discoveryTarget=null;s.activityProgress=0;s.energy=Math.min(100,s.energy+.42);
   s.comfort=Math.min(100,s.comfort+.05);
   msg='Taking a proper rest and recharging.';kind='rest';
- }else if(s.comfort<35){
+ }else if(!busy&&s.comfort<35){
   const t=objects.find(o=>o.id==='tree');
   s.activityTarget=null;
   if(dist(s,t)>35){move(t,3.52);msg='Looking for a peaceful spot beneath the tree.'}
   else{s.comfort=Math.min(100,s.comfort+.5);s.energy=Math.min(100,s.energy+.03);
    msg='Enjoying the shade. This place feels safe and familiar.';kind='comfort'}
- }else if(unknown.length){
-  const t=unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];s.activityTarget=null;
+ }else if(s.discoveryTarget||(!s.activityTarget&&unknown.length)){
+  if(!s.discoveryTarget)s.discoveryTarget=unknown.slice().sort((a,b)=>dist(s,a)-dist(s,b))[0].id;
+  const t=objects.find(o=>o.id===s.discoveryTarget);s.activityTarget=null;
   if(dist(s,t)<22){
-   s.discoveries.push(t.id);s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
+   s.discoveries.push(t.id);s.discoveryTarget=null;s.knowledge++;s.curiosity=Math.max(5,s.curiosity-24);
    s.learned.explore=(s.learned.explore||0)+2.2;
    const descriptions={pond:'The pond is cool water.',stone:'The stone is heavy and smooth.',flower:'The flower smells lovely.',tree:'The old tree offers good shade.',mushroom:'This mushroom might not be safe to eat.',berry:'These berries might be edible.',book:'A laptop! I can investigate all kinds of questions here.'};
    msg='Discovery: '+descriptions[t.kind];kind='discovery';
@@ -109,7 +115,8 @@ function step(){
  }else{
   // Once all objects are discovered, PET pursues varied activities rather than looping dialogue.
   if(!s.activityTarget){
-   const next=choice();s.activityTarget=next.id;
+   const next=choice();s.activityTarget=next.id;s.activityProgress=0;
+   msg='I have decided to go '+next.name+'.';kind='plan';
   }
   const activities={
    lake:{object:'pond',distance:60,comfort:.65,curiosity:1.3,thoughts:['The water is making new patterns today.','I wonder what is beneath the surface.','Watching the reflections makes me feel calm.']},
@@ -123,7 +130,7 @@ function step(){
   };
   const activity=activities[s.activityTarget]||activities.lake;
   const t=objects.find(o=>o.id===activity.object);
-  if(dist(s,t)>activity.distance){move(t,3.36);msg='Going to spend some time '+(s.activityTarget==='shade'?'under the tree':'by '+t.label.toLowerCase())+'.'}
+  if(dist(s,t)>activity.distance){move(t,3.36);if(kind!=='plan')msg='On my way to '+t.label.toLowerCase()+'.'}
   else{
    s.activityProgress=(s.activityProgress||0)+1;
    s.comfort=Math.min(100,s.comfort+(activity.comfort||.1)*.2);
@@ -150,7 +157,7 @@ function step(){
   }
  }
  s.x=Math.max(16,Math.min(W-16,s.x));s.y=Math.max(16,Math.min(H-16,s.y));
- if(kind!=='thought'&&(kind==='learning'||kind==='discovery'||kind==='activity'||s.tick%5===0)||s.tick%25===0)log(kind,msg);
+ if(kind==='plan'||kind==='learning'||kind==='discovery'||kind==='activity'||kind==='food'||(msg&&s.tick%25===0))log(kind,msg);
  save();render();
 }
 
