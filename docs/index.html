@@ -4,7 +4,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap");
 :root{color-scheme:dark;--bg:#101713;--panel:#19251e;--line:#304638;--text:#e8f0e9;--muted:#9bb0a0;--green:#a7dc91}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{padding:20px max(18px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;letter-spacing:.15em;margin:0}small,.muted{color:var(--muted)}main{max-width:1180px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.world{grid-row:span 2}.worldhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}canvas{width:100%;height:auto;aspect-ratio:3/2;display:block;border-radius:4px;background:#294a32;image-rendering:pixelated;image-rendering:crisp-edges}.worldstage{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:4px}.worldstage canvas{width:100%;height:100%}.worldlabels{position:absolute;inset:0;pointer-events:none;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.worldlabel[hidden]{display:none!important}.worldlabel{position:absolute;transform:translate(-50%,-100%);background:#f8f7f2;color:#555965;border:1px solid #c8c7c1;box-shadow:2px 2px 0 #85817b;padding:2px 5px;font:600 clamp(10px,1.1vw,13px)/1.1 "Pixelify Sans",monospace;letter-spacing:.01em;white-space:nowrap;z-index:2;text-shadow:1px 1px 0 #d8c3a9;-webkit-font-smoothing:none}.worldclock{position:absolute;left:12px;top:12px;background:#f8f7f2;color:#555965;border:2px solid #c8c7c1;box-shadow:3px 3px 0 #85817b;padding:5px 10px;font:600 clamp(18px,2.5vw,24px)/1.15 "Pixelify Sans",monospace;z-index:3;pointer-events:none;text-shadow:1px 2px 0 #d8c3a9}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:11px;background:#111c15;border-radius:10px}.stathead{display:flex;justify-content:space-between;font-size:13px}.track{height:7px;background:#304136;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--green);transition:width .3s}h2{font-size:15px;margin:0 0 12px}.events{max-height:320px;overflow:auto}.event{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.tag{font-size:10px;text-transform:uppercase;color:var(--green);letter-spacing:.08em}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#25382b;border:1px solid #3d5b45;border-radius:20px;padding:5px 9px;font-size:12px}button{background:#294b35;color:white;border:1px solid #527b5d;border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#356344}.actions{display:flex;gap:8px;flex-wrap:wrap}.dialogue{display:flex;flex-direction:column;gap:10px}.chatlog{height:220px;overflow:auto;background:#111c15;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}.bubble{max-width:88%;padding:9px 11px;border-radius:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.pet{background:#294b35;align-self:flex-start;border-bottom-left-radius:3px}.bubble.you{background:#34404a;align-self:flex-end;border-bottom-right-radius:3px}.chatmeta{font-size:10px;color:var(--muted);margin-bottom:3px}.chatform{display:flex;gap:8px}.chatform input{min-width:0;flex:1;background:#111c15;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}.chatform input:focus{outline:2px solid var(--green);outline-offset:1px}footer{max-width:1180px;margin:auto;padding:0 18px 24px;color:var(--muted);font-size:12px}@media(max-width:800px){main{grid-template-columns:1fr}.world{grid-row:auto}}
-</style></head><body>
+ .journal-entry{border:1px solid var(--line);background:#111c15;border-radius:9px;padding:12px;margin-top:10px}.journal-entry summary{cursor:pointer;font-weight:700}.journal-entry p{margin:8px 0 0;color:var(--muted);font-size:13px}.journal-entry ul{margin:8px 0 0;padding-left:20px;font-size:13px}.journal-entry li{margin:4px 0}.journal-meta{font-size:12px;color:var(--green);margin-top:6px} </style></head><body>
 <header><div><h1>P E T</h1><small>A tiny life in a pixel-art lakeside world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
 <section class="panel world"><div class="worldhead"><div><h2>Its world</h2><small>A peaceful lakeside clearing</small></div><small id="tick">Tick 0</small></div><div class="worldstage"><canvas id="world" width="450" height="300" aria-label="PET's habitat"></canvas><div class="worldlabels" id="worldlabels" aria-hidden="true"></div><div class="worldclock" id="worldclock"></div></div><p class="muted" style="font-size:12px;margin-bottom:0">This is the GitHub Pages browser edition. Its state is saved on this device.</p></section>
@@ -13,6 +13,7 @@
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
 <section class="panel"><h2>What PET has learned</h2><div class="chips" id="facts">No research facts yet.</div><small class="muted">PET remembers facts after reading the research laptop.</small></section>
 <section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
+<section class="panel" style="grid-column:1/-1"><h2>📖 PET’s journal</h2><small class="muted">A diary of each real-world day in PET’s life, saved on this device. Today updates as PET explores.</small><div id="journal"></div></section>
 <section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
 </main><footer>Browser simulation · Rule-based behaviour · Local browser storage · Not sent to a server</footer>
 <script>
@@ -29,9 +30,38 @@ if(!Array.isArray(s.dialogue))s.dialogue=[{from:'pet',text:'Hello. I’m still f
 if(typeof s.name!=='string')s.name='PET';
 if(!s.personality||typeof s.personality!=='object')s.personality={};
 if(!Array.isArray(s.facts))s.facts=[];
+if(!Array.isArray(s.journal))s.journal=[];
 let paused=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){document.getElementById('status').textContent='Storage unavailable'}}
-function log(kind,message){s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40)}
+function dayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function ensureJournalDay(){
+ const key=dayKey();
+ if(!Array.isArray(s.journal))s.journal=[];
+ if(!s.journal.length||s.journal[0].date!==key){
+  s.journal.unshift({date:key,startTick:s.tick,counts:{},highlights:[],places:[],startKnowledge:s.knowledge,startDiscoveries:s.discoveries.length});
+  s.journal=s.journal.slice(0,30);
+ }
+ return s.journal[0];
+}
+function log(kind,message){
+ s.events.unshift({tick:s.tick,kind,message});s.events=s.events.slice(0,40);
+ const day=ensureJournalDay();
+ day.counts[kind]=(day.counts[kind]||0)+1;
+ if(day.highlights.length<18)day.highlights.push({kind,message});
+}
+function renderJournal(){
+ const el=document.getElementById('journal');
+ const today=ensureJournalDay();
+ el.innerHTML=s.journal.map((day,i)=>{
+  const counts=day.counts||{};
+  const date=new Date(day.date+'T12:00:00');
+  const title=Number.isNaN(date.getTime())?day.date:date.toLocaleDateString([],{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const count=(k,n)=>counts[k]?counts[k]+' '+n:'';
+  const stats=[count('discovery','discoveries'),count('learning','research moments'),count('food','meals'),count('activity','activities')].filter(Boolean).join(' · ');
+  const notes=(day.highlights||[]).slice(-8).map(e=>'<li>'+escapeHtml(e.message)+'</li>').join('');
+  return '<details class="journal-entry" '+(i===0?'open':'')+'><summary>'+escapeHtml(title)+(i===0?' · Today':'')+'</summary><div class="journal-meta">'+(stats||'A quiet day so far')+'</div><p>'+((day.highlights||[]).length?'PET '+(counts.discovery?'explored new places, ':'')+(counts.learning?'learned something new, ':'')+(counts.food?'found food, ':'')+'and spent time in its little world.':'No notable moments recorded yet.')+'</p>'+(notes?'<ul>'+notes+'</ul>':'')+'</details>';
+ }).join('');
+}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function move(t,speed){let dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;s.x+=dx/d*Math.min(speed,d);s.y+=dy/d*Math.min(speed,d)}
 const researchFacts=[
@@ -61,6 +91,7 @@ const researchFacts=[
  {topic:'dinosaurs',fact:'Birds are the surviving descendants of theropod dinosaurs.'}
 ];
 function step(){
+ ensureJournalDay();
  s.tick++;s.hunger=Math.min(100,s.hunger+.024);s.energy=Math.max(0,s.energy-.056);
  s.curiosity=Math.min(100,s.curiosity+.024);s.comfort=Math.max(0,s.comfort-.008);
  // Persisted activity state is initialized lazily for existing saves.
@@ -456,7 +487,7 @@ document.getElementById('chatform').addEventListener('submit',e=>{
 });
 
 function render(){
- draw();renderDialogue();document.getElementById('petname').value=document.activeElement===document.getElementById('petname')?document.getElementById('petname').value:s.name;
+ renderJournal();draw();renderDialogue();document.getElementById('petname').value=document.activeElement===document.getElementById('petname')?document.getElementById('petname').value:s.name;
  const ranked=Object.entries(s.personality).sort((a,b)=>b[1]-a[1]);
  const labels={lake:'Lake watcher',shade:'Homebody',flowers:'Nature lover',stones:'Investigator',mushrooms:'Careful observer',berries:'Forager',shore:'Shore explorer',reading:'Researcher'};
  document.getElementById('personality').textContent=ranked.length&&ranked[0][1]>0?'Developing personality: '+(labels[ranked[0][0]]||'Explorer')+' · preferences grow through activities':'Personality develops as your PET explores and chooses activities.';
