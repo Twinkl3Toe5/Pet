@@ -29,6 +29,19 @@ button:hover{background:#49666a}button:active{transform:translate(2px,2px);box-s
 .worldclock{background:#202a32;color:#f4edda;border-color:#aab1a6;box-shadow:3px 3px 0 #10171d;text-shadow:1px 2px 0 #11191e}
 .worldlabel{background:#253039;color:#f2ecda;border-color:#aab1a6;box-shadow:2px 2px 0 #11171c;text-shadow:1px 1px 0 #10171c}
 @media(max-width:800px){.panel{padding:12px}h1{font-size:25px}}
+
+/* Compact research library: folders stay closed until opened. */
+.research-library{display:grid;gap:8px;margin:10px 0}
+.research-folder{background:#151e25;border:1px solid #788780;border-radius:2px;box-shadow:2px 2px 0 #0a1014;overflow:hidden}
+.research-folder summary{display:flex;align-items:center;gap:9px;padding:10px 12px;cursor:pointer;list-style:none;font:600 17px/1.2 "Pixelify Sans",monospace;color:#eee7d2}
+.research-folder summary::-webkit-details-marker{display:none}
+.research-folder summary:after{content:"+";margin-left:auto;color:#b5c8ae;font-size:20px}
+.research-folder[open] summary:after{content:"−"}
+.research-count{font-size:13px;color:#b4c2b6;white-space:nowrap}
+.research-pages{padding:3px 12px 10px;border-top:1px solid #495b5d}
+.research-topic{margin:10px 0 4px;font:600 15px "Pixelify Sans",monospace;color:#b9d7b3;text-transform:capitalize}
+.research-fact{padding:7px 0;border-bottom:1px dashed #425357;font-size:13px;line-height:1.5}
+.research-fact:last-child{border-bottom:0}
 </style></head><body>
 <header><div><h1>P E T</h1><small>A tiny life in a pixel-art lakeside world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
@@ -36,7 +49,7 @@ button:hover{background:#49666a}button:active{transform:translate(2px,2px);box-s
 <section class="panel"><h2>Meet your PET</h2><form id="nameform" class="chatform" style="margin-bottom:12px"><input id="petname" maxlength="24" placeholder="Give your PET a name…" aria-label="PET name"><button type="submit">Save name</button></form><small class="muted" id="personality">Personality developing…</small></section>
 <section class="panel"><h2>Creature state</h2><div class="stats" id="stats"></div></section>
 <section class="panel dialogue"><h2>Talk to PET</h2><div class="chatlog" id="chatlog" aria-live="polite"></div><form class="chatform" id="chatform"><input id="chatinput" maxlength="180" autocomplete="off" placeholder="Say something to PET…" aria-label="Message PET"><button type="submit">Send</button></form><small class="muted">PET replies using its own simple rules and current experiences.</small></section>
-<section class="panel"><h2>What PET has learned</h2><div class="chips" id="facts">No research facts yet.</div><small class="muted">PET remembers facts after reading the research laptop.</small></section>
+<section class="panel"><h2>What PET has learned</h2><div class="research-library" id="facts">No research facts yet.</div><small class="muted">Open a folder to read what PET has researched.</small></section>
 <section class="panel"><h2>Discoveries</h2><div class="chips" id="discoveries">Nothing yet.</div><p class="muted" style="font-size:12px">Unknown things become memories when PET investigates them.</p><div class="actions"><button id="pause">Pause</button><button id="reset">Reset creature</button></div></section>
 <section class="panel" style="grid-column:1/-1"><h2>📖 PET’s journal</h2><small class="muted">A diary of each real-world day in PET’s life, saved on this device. Today updates as PET explores.</small><div id="journal"></div></section>
 <section class="panel" style="grid-column:1/-1"><h2>Recent experiences</h2><div class="events" id="events"></div></section>
@@ -569,7 +582,21 @@ function render(){
  document.getElementById('tick').textContent='Tick '+s.tick;document.getElementById('status').textContent=paused?'Paused':('Alive · '+(s.task?.type==='rest'?'Resting':s.task?.type==='comfort'?'Seeking comfort':s.task?.type==='eat'?'Finding food':s.task?.type==='discover'?'Exploring':s.task?.type==='activity'?'Heading to '+(s.task.target==='reading'?'research laptop':s.task.target):'Choosing next activity'));
  const stats=[['Energy',s.energy],['Hunger',s.hunger],['Curiosity',s.curiosity],['Comfort',s.comfort]];
  document.getElementById('stats').innerHTML=stats.map(([n,v])=>'<div class="stat"><div class="stathead"><span>'+n+'</span><b>'+Math.round(v)+'%</b></div><div class="track"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')+'<div class="stat"><div class="stathead"><span>Knowledge</span><b>'+s.knowledge+'</b></div><small>Discoveries retained</small></div><div class="stat"><div class="stathead"><span>Learned preferences</span><b>'+Object.keys(s.learned).length+'</b></div><small>Behaviour values</small></div>';
- document.getElementById('facts').innerHTML=s.facts.length?s.facts.map(f=>'<span class="chip" title="'+escapeHtml(f.fact)+'">'+escapeHtml(f.topic)+': '+escapeHtml(f.fact)+'</span>').join(''):'<span class="muted">No research facts yet. PET will learn by researching.</span>';
+ const library=document.getElementById('facts');
+ const openFolders=new Set([...library.querySelectorAll('details[open]')].map(el=>el.dataset.folder));
+ const categories={
+  'Nature & Wildlife':['jellyfish','octopuses','bees','trees','frogs','mushrooms','butterflies','otters','birds','dinosaurs'],
+  'Space & Earth':['stars','space','lakes','geography','weather'],
+  'Science & Technology':['computers','robots','mathematics','engineering'],
+  'Arts & History':['music','history','language','art']
+ };
+ const grouped={};
+ for(const fact of s.facts){const category=Object.keys(categories).find(k=>categories[k].includes(fact.topic))||'Other discoveries';(grouped[category]??=[]).push(fact)}
+ library.innerHTML=s.facts.length?Object.entries(grouped).map(([category,facts])=>{
+  const topics=[...new Set(facts.map(f=>f.topic))].sort();
+  const pages=topics.map(topic=>'<div class="research-topic">'+escapeHtml(topic)+'</div>'+facts.filter(f=>f.topic===topic).map(f=>'<div class="research-fact">'+escapeHtml(f.fact)+'</div>').join('')).join('');
+  return '<details class="research-folder" data-folder="'+escapeHtml(category)+'" '+(openFolders.has(category)?'open':'')+'><summary><span aria-hidden="true">📁</span><span>'+escapeHtml(category)+'</span><span class="research-count">'+facts.length+' '+(facts.length===1?'fact':'facts')+'</span></summary><div class="research-pages">'+pages+'</div></details>';
+ }).join(''):'<span class="muted">The library is empty. PET will fill these folders when it researches.</span>';
  document.getElementById('discoveries').innerHTML=s.discoveries.map(id=>'<span class="chip">'+(objects.find(o=>o.id===id)?.label||id)+'</span>').join('')||'<span class="muted">Nothing yet. The world is new.</span>';
  document.getElementById('events').innerHTML=s.events.map(e=>'<div class="event"><span class="tag">'+e.kind+' · tick '+e.tick+'</span><br>'+e.message+'</div>').join('');
 }
