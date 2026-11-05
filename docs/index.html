@@ -42,6 +42,41 @@ button:hover{background:#49666a}button:active{transform:translate(2px,2px);box-s
 .research-topic{margin:10px 0 4px;font:600 15px "Pixelify Sans",monospace;color:#b9d7b3;text-transform:capitalize}
 .research-fact{padding:7px 0;border-bottom:1px dashed #425357;font-size:13px;line-height:1.5}
 .research-fact:last-child{border-bottom:0}
+
+/* Carved pixel-wood signboards throughout the menus; keep the world artwork intact. */
+:root{--panel:#493426;--line:#9b754b;--text:#f6e9c9;--muted:#d7c4a4;--frame:#bc8b55;--shadow:#120e0d}
+body{background:#171b1b;color:var(--text)}
+header{background:#35271f;border-bottom:4px solid #9c6b40;box-shadow:0 5px 0 #120f0c}
+.panel{
+ background:
+  repeating-linear-gradient(0deg,transparent 0 43px,rgba(25,13,10,.38) 43px 46px,rgba(217,158,90,.08) 46px 48px,transparent 48px 92px),
+  repeating-linear-gradient(90deg,rgba(255,205,129,.035) 0 6px,transparent 6px 21px,rgba(17,9,8,.09) 21px 24px,transparent 24px 48px),
+  #503929;
+ border:4px solid #a87949;border-radius:2px;
+ outline:2px solid #26190f;outline-offset:-8px;
+ box-shadow:inset 4px 4px 0 #d4a267,inset -4px -4px 0 #2b1b16,5px 5px 0 #100d0b;
+}
+h1,h2{color:#ffe8b6;text-shadow:2px 3px 0 #28160e}
+h2{display:inline-block;background:#64452d;border:2px solid #b88955;box-shadow:2px 2px 0 #27180f,inset 2px 2px 0 #8e613b;padding:4px 10px;margin-bottom:14px}
+.stat,.journal-entry,.research-folder,.chatlog{
+ background:repeating-linear-gradient(0deg,#392a22 0 36px,#4a3225 36px 39px,#392a22 39px 74px);
+ border:2px solid #a0784c;border-radius:2px;box-shadow:inset 2px 2px 0 #79553a,3px 3px 0 #20150f
+}
+.stathead,.research-folder summary,.journal-entry summary{color:#f5e4c2}
+.track{background:#281d19;border:2px solid #947049}.fill{background:#a8cf85}
+.chip{background:#65472e;border:2px solid #b28b59;border-radius:2px;color:#f8e6bd;box-shadow:2px 2px 0 #261810}
+button{background:linear-gradient(#8c623d 0 16%,#68452c 16% 83%,#4d3224 83%);border:2px solid #c39760;border-radius:2px;color:#fff0c8;box-shadow:inset 2px 2px 0 #b88550,3px 3px 0 #21150e;text-shadow:1px 2px 0 #332015}
+button:hover{background:#986e47}button:active{box-shadow:1px 1px 0 #21150e}
+.chatform input{background:#2b2420;border:2px solid #a37e54;color:#fff0d2}
+.bubble.pet{background:#5a4632;border:2px solid #9d8056}.bubble.you{background:#434e4c;border:2px solid #8e9d8d}
+.chatmeta,.journal-meta,.tag{color:#d7bd8a}
+.research-folder summary{background:#60442e}.research-folder[open] summary{border-bottom:2px solid #947149}
+.research-pages{border-top:0;background:#382920}
+.research-topic{color:#ebcc8c}
+.research-fact{border-bottom:1px dashed #856746}
+.event{border-bottom:1px dashed #9b754b}
+.worldstage{border:3px solid #9d754d;box-shadow:3px 3px 0 #20150f}
+.worldclock,.worldlabel{background:#4b3526;color:#ffe8bd;border-color:#bc8f58;box-shadow:2px 2px 0 #1f140f;text-shadow:1px 1px 0 #29180f}
 </style></head><body>
 <header><div><h1>P E T</h1><small>A tiny life in a pixel-art lakeside world</small></div><div><span style="color:var(--green)">●</span> <span id="status">Starting…</span></div></header>
 <main>
